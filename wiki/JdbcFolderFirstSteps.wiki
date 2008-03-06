@@ -6,9 +6,28 @@
    * Oracle Data Integrator
 
 
-= Details =
+= Configuration =
 
-  Coming soon
+  # Télécharger le fichier rhino1_5R5.zip depuis le site web :
+
+  [http://www.mozilla.org/rhino Rhino project]
+
+  # Aller voir dans la section Downloads-> Rhino downloads archive
+  # Extraire le fichier js.jar et l'ajouter au classpath de l'application java
+  # Ajouter jdbcFolder0.1.jar au classpath de l'application java
+
+
+La classe du driver est :
+
+_com.ysance.tools.jdbc.driver.JdbcFolderDriver
+
+
+L'url du driver est fixe ( pour l'instant ) :
+
+_jdbc:folder_
+
+
+Pas de d'informations de connexion à fournir ( pour l'instant )
 
 = SQuirreL SQL =
 
@@ -58,4 +77,3 @@ select filename from /temp
 
 
 Seul bémol, pour l'instant, il n'est pas possible d'utiliser les méthodes de substitution.
-
