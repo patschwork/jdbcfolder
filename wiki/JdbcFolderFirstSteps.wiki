@@ -8,26 +8,26 @@
 
 = Configuration =
 
-  # Télécharger le fichier rhino1_5R5.zip depuis le site web :
+  # Download the rhino1_5R5.zip file from the following website :
 
   [http://www.mozilla.org/rhino Rhino project]
 
-  # Aller voir dans la section Downloads-> Rhino downloads archive
-  # Extraire le fichier js.jar et l'ajouter au classpath de l'application java
-  # Ajouter jdbcFolder0.1.jar au classpath de l'application java
+  # Go to _Downloads-> Rhino downloads archive_ section
+  # Extract js.jar and add it in the classpath of the java application
+  # Add jdbcFolder0.1.jar at the java application classpath 
 
 
-La classe du driver est :
+The driver class is :
 
 _com.ysance.tools.jdbc.driver.JdbcFolderDriver
 
 
-L'url du driver est fixe ( pour l'instant ) :
+By now the driver url is fixed at :
 
 _jdbc:folder_
 
 
-Pas de d'informations de connexion à fournir ( pour l'instant )
+No login information to enter ( by now )
 
 = SQuirreL SQL =
 
