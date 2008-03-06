@@ -31,50 +31,47 @@ No login information to enter ( by now )
 
 = SQuirreL SQL =
 
-  # Add the two jar files in the lib directory of SQuirreL an then launch the application.
+  # Add the two jar files in the *lib* directory of SQuirreL an then launch the application.
   # Configure a new driver named JdbcFolder and fill-up the field with the url and driver class given before
   # Create an alias selecting the JdbcFolder driver. The url is still the same than above.
   # Connect and try a {{{select * from /windows }}} query
 
 = Oracle Data Integrator =
 
-  # Copier les deux x fichiers dans le répertoire drivers de l'installation.
-  # Lancer une fois jython.bat ( ça met en cache les jars ) et sortir (Ctrl+Z).
+  # Add the two jar files in the *drivers* directory of ODI.
+  # Launch jython.bat once ( it caches the jars ) and exit (Ctrl+Z).
 
 == Configure the technology ==
 
-  # Aller dans la Topologie -> Architecture logique , et insérer une nouvelle technologie.
-    * Nom : JdbcFolder
+  # Go in the *Topology -> Logical architecture* , and insert a new technology.
+    * Name : JdbcFolder
     * Code : JDBCFOLDER
-    * Type : Base de données ou fichier (JDBC/ODBC)
+    * Type : Database or file (JDBC/ODBC)
 
-  # Sélectionner « Utilisation d'un catalogue » terme : Catalogue
-  # Insérer un nouveau schéma logique( ex : JFLDR_TEST )
-  # Aller dans la Topologie -> Architecture physique et insérer un nouveau serveur de données( ex : JDBCFOLDER_TEST )
+  # Select « Use a catalogue » write : Catalog
+  # Insert new logical schema ( ex : JFLDR_TEST )
 
-  # Sous ce serveur, insérer un nouveau schéma physique. Il peut rester vide.
-  # Associer le schéma logique et le schéma physique
+  # Go in the *Topology -> Physical architecture* and insert a new Dataserver ( ex : JDBCFOLDER_TEST )
 
-== Créer un nouveau traitement ==
+  # Under the server, add a new physical schema, it can be blank.
+  # Associate the logical and the physical schemas in a context.
 
-  * Y ajouter une nouvelle ligne de type Sunopsis API dont le contenu est :
+== Create a new Treatment ==
 
+  * Add a new line of *Sunopsis API* type and put in it :
     {{{
-OdiOutFile -FILE=C:/temp/liste.txt -APPEND -XROW_SEP=0D0A
-
-
-ceci est un fichier appelé #filename
+    OdiOutFile -FILE=C:/temp/list.txt -APPEND -XROW_SEP=0D0A
+    this a file named #filename
     }}}
+  * Configure the *Source* tab with the JdbcFolder technology, and JFLDR_TEST logical schema.
+  * Add the following query :
+    {{{
+    select filename from /temp
+    }}}
+  * Save all and execute. 
 
-  * Configurer l'onglet source avec la technologie JdbcFolder, schéma logique JFLDR_TEST.
-
-  * Ajouter la requête suivante :
-
-{{{
-select filename from /temp
-}}}
-
-  * Enregistrer le tout et exécuter. Dans le répertoire C:\temp se trouve désormais un fichier liste.txt contenant la liste des fichiers présents dans ce même répertoire ( sauf liste.txt puisqu'il a été créé après la sélection ). OdiOutFilepeut être remplacé par n'importe quel outil ODI, par une ligne jython ou du SQL, comme dans un traitement lambda.
+  * ==> The C:\temp directory should now have a file called list.txt containing the ligne of files present in this directory ( minus list.txt as it has been created after the sélection. 
+  * ==> OdiOutFile can be replaced by any other ODI tool, by a jython code line or even SQL, like any other treatment.
 
 
-Seul bémol, pour l'instant, il n'est pas possible d'utiliser les méthodes de substitution.
+The only drawback is that, by now, ODI substitution methods don't work.
