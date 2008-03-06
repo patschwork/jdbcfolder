@@ -26,3 +26,5 @@
     * Use of aggregation functions
     * Use of utilitary functions.
     * Retrieve of the usefull metadata from the "database"
+    * Handle logs in a clean way
+    * Add of unit testing
