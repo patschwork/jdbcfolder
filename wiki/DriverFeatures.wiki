@@ -1,0 +1,28 @@
+#summary Features and Roadmaps for each version
+
+= 0.1 version =
+
+=== What's possible ===
+    * Sélection des fichiers d'un répertoire :
+        {{{SELECT * from c:/monrepertoire }}}
+    * Utilisation d'une clause WHERE :
+        {{{SELECT * from c:/monrepertoire where extension = 'pdf'}}}
+    * Associer plusieurs filtres dans la clause WHERE ( opérateurs AND et OR )
+        {{{SELECT * from c:/monrepertoire where extension = 'pdf' or extension = 'vbs'}}}
+    * Utiliser les parenthèses dans le filtre
+        {{{SELECT * from c:/monrepertoire where extension = 'pdf' or extension = 'vbs' and SIZE > 0 renvoie u n résultat différent de SELECT * from c:/monrepertoire where ( extension = 'pdf' and SIZE > 0 ) or extension = 'vbs'}}}
+    * Récupérer les propriétés suivantes des fichiers :
+          *  FILENAME
+          *  SIZE
+          *  EXTENSION          
+    * Filtrer sur les propriétés suivantes des fichiers :
+          *  FILENAME
+          *  SIZE
+          *  EXTENSION          
+    * Utiliser des chemins sous la forme Windows ou sous la forme Unix    
+    * Répéter plusieurs fois le même nom de champ dans le SELECT
+
+=== What's coming ===
+    * Utiliser des fonctions d'aggrégation  
+    * Utiliser certains operateurs sans qu'ils soient entourés d'un espace.
+    * Récupérer les metadata complètes de la « base de données »
