@@ -31,9 +31,10 @@ No login information to enter ( by now )
 
 = SQuirreL SQL =
 
-  # Ajouter les deux fichiers dans le répertoire lib de l'application, lancer SquirreL.
-  # Configurer un driver avec les informations données ci-dessus et ayant pour nom JdbcFolder.
-    # Créer un alias en sélectionnant le driver JdbcFolder et en utilisant l'url donnée ci-dessus.
+  # Add the two jar files in the lib directory of SQuirreL an then launch the application.
+  # Configure a new driver named JdbcFolder and fill-up the field with the url and driver class given before
+  # Create an alias selecting the JdbcFolder driver. The url is still the same than above.
+  # Connect and try a {{{select * from /windows }}} query
 
 = Oracle Data Integrator =
 
