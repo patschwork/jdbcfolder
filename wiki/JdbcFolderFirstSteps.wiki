@@ -1,0 +1,61 @@
+#summary First steps to use the jdbcFolder library
+= Introduction =
+
+  In this page you will find the procedure to follow to use jdbcFolder with two tools :
+   * SQuirreL SQL
+   * Oracle Data Integrator
+
+
+= Details =
+
+  Coming soon
+
+= SQuirreL SQL =
+
+  # Ajouter les deux fichiers dans le répertoire lib de l'application, lancer SquirreL.
+  # Configurer un driver avec les informations données ci-dessus et ayant pour nom JdbcFolder.
+    # Créer un alias en sélectionnant le driver JdbcFolder et en utilisant l'url donnée ci-dessus.
+
+= Oracle Data Integrator =
+
+  # Copier les deux x fichiers dans le répertoire drivers de l'installation.
+  # Lancer une fois jython.bat ( ça met en cache les jars ) et sortir (Ctrl+Z).
+
+== Configure the technology ==
+
+  # Aller dans la Topologie -> Architecture logique , et insérer une nouvelle technologie.
+    * Nom : JdbcFolder
+    * Code : JDBCFOLDER
+    * Type : Base de données ou fichier (JDBC/ODBC)
+
+  # Sélectionner « Utilisation d'un catalogue » terme : Catalogue
+  # Insérer un nouveau schéma logique( ex : JFLDR_TEST )
+  # Aller dans la Topologie -> Architecture physique et insérer un nouveau serveur de données( ex : JDBCFOLDER_TEST )
+
+  # Sous ce serveur, insérer un nouveau schéma physique. Il peut rester vide.
+  # Associer le schéma logique et le schéma physique
+
+== Créer un nouveau traitement ==
+
+  * Y ajouter une nouvelle ligne de type Sunopsis API dont le contenu est :
+
+    {{{
+OdiOutFile -FILE=C:/temp/liste.txt -APPEND -XROW_SEP=0D0A
+
+
+ceci est un fichier appelé #filename
+    }}}
+
+  * Configurer l'onglet source avec la technologie JdbcFolder, schéma logique JFLDR_TEST.
+
+  * Ajouter la requête suivante :
+
+{{{
+select filename from /temp
+}}}
+
+  * Enregistrer le tout et exécuter. Dans le répertoire C:\temp se trouve désormais un fichier liste.txt contenant la liste des fichiers présents dans ce même répertoire ( sauf liste.txt puisqu'il a été créé après la sélection ). OdiOutFilepeut être remplacé par n'importe quel outil ODI, par une ligne jython ou du SQL, comme dans un traitement lambda.
+
+
+Seul bémol, pour l'instant, il n'est pas possible d'utiliser les méthodes de substitution.
+
