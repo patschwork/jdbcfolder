@@ -15,8 +15,10 @@ import com.ysance.tools.jdbc.driver.JdbcFolderExceptions.DatasetFieldNotFoundExc
 import com.ysance.tools.jdbc.driver.JdbcFolderExceptions.NoClauseFoundException;
 import com.ysance.tools.jdbc.driver.resultsets.metadata.FolderResultSetMetaData;
 import com.ysance.tools.jdbc.driver.resultsets.row.RowFile;
-import com.ysance.tools.jdbc.driver.sql.SQLFormatter;
+import com.ysance.tools.jdbc.driver.javascript.JavaScriptFilterFormatter;
 import com.ysance.tools.jdbc.driver.sql.SQLValidator;
+import com.ysance.tools.jdbc.driver.sql.SQLGrammar;
+
 
 public class FolderResultSet extends JdbcFolderAbstractResultSet {
 
@@ -69,43 +71,26 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	  return ((RowFile)(tableauLignes[positionCurseur])).getData(definitionColonne.columnName);	
 	}	
 	
-	public void populateData(String aRequete) throws SQLException {
-		/*aRequete = SQLFormatter.upperCaseSQLWordsAndFields(aRequete); 
-		int positionSelect = aRequete.indexOf(SQLFormatter.SELECT_WORD);  
-		int positionFrom   = aRequete.indexOf(SQLFormatter.FROM_WORD);
-		int positionWhere   = aRequete.indexOf(SQLFormatter.WHERE_WORD);
-		
-		if ( positionSelect < 0 ) throw new JdbcFolderExceptions.NoSelectWordFoundException();
-		if ( positionFrom < 0 )   throw new JdbcFolderExceptions.NoFromWordFoundException();
+	public void populateData(SQLValidator aValidator) throws SQLException {
 
-		if (positionWhere > 0) {			
-		  clauseWhere =  aRequete.substring(positionWhere + SQLFormatter.WHERE_WORD.length());
-				
-		  if (clauseWhere.trim().length() == 0) throw new NoClauseFoundException();
-		}*/	
+		String cheminCatalogue = aValidator.getCatalogPath();
 		
-		SQLValidator validator = new SQLValidator(aRequete);		
-		
-		//String cheminCatalogue = aRequete.substring(positionFrom + SQLFormatter.FROM_WORD.length(), positionWhere < 0 ? aRequete.length() : positionWhere).trim();
-		
-		String cheminCatalogue = validator.getCatalogPath();
-		
-		String clauseWhere = validator.getWhereClause();  
+		String clauseWhere = JavaScriptFilterFormatter.format(aValidator.getWhereClause());  
 		
 		// Vérification existence répertoire		
-		File newCatalogue = new File(cheminCatalogue);
+		File newCatalogue = new File(cheminCatalogue.trim());
 		if (!newCatalogue.exists()) throw new JdbcFolderExceptions.TableDoesntExistException(newCatalogue.getAbsolutePath()); 
 		if (!newCatalogue.isDirectory()) throw new JdbcFolderExceptions.TableIsNotDirectoryException(newCatalogue.getAbsolutePath()) ;
 					
 		this.catalogue = newCatalogue;		
 		
-		StringTokenizer champs = validator.getFields();
+		StringTokenizer champs = aValidator.getFields();
 
 		// Détermination des champs à retourner
 		while (champs.hasMoreTokens()) {
 			String champ = champs.nextToken().trim();
 			FolderResultSetMetaData metadata = (FolderResultSetMetaData)this.getMetaData(); 
-			if (SQLFormatter.JOKER_WORD.equals(champ)) {
+			if (SQLGrammar.JOKER_WORD.equals(champ.trim())) {
 				metadata.addAllPossibleColumns();
 			} else {
 				if (!metadata.recognizeField(champ)){
@@ -128,6 +113,7 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	    // Application des filtres de la clause where 
 	    java.util.ArrayList indexFichiers = new java.util.ArrayList();
 	    
+	    // S'il y a une clause where à traiter, c'est fait ici
 	    if (fichiers.length > 0 && clauseWhere.trim().length() > 0 ) {
 	      Context cx = Context.enter();
 	
@@ -140,7 +126,9 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	          filtre = filtre.replaceAll(FolderResultSetMetaData.FILENAME_FIELD, ligneFichier+RowFile.getMethodForField(FolderResultSetMetaData.FILENAME_FIELD));
 	          filtre = filtre.replaceAll(FolderResultSetMetaData.EXTENSION_FIELD, ligneFichier+RowFile.getMethodForField(FolderResultSetMetaData.EXTENSION_FIELD));            
 	          
-	          String requete = " for (i = 0; i < fichiers.length; i++ ) {if ( " +filtre + " ) indexFichiers.add(new java.lang.Integer(i))}";
+	          String requete = " for (i = 0; i < fichiers.length; i++ ) { \n"+
+	                           "   if ( " +filtre + " ) indexFichiers.add(new java.lang.Integer(i))\n"+
+	                           " }";
 	                      
 	          System.out.println(requete);        
 	          
@@ -161,6 +149,7 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	        Context.exit();
 	      }  	
 	    } else {
+  	      // S'il n'y a aucune clause where à traiter, on met toutes les lignes
 	      for (int i = 0; i < liste.length; i++ ) {
 	      	indexFichiers.add(new java.lang.Integer(i));
 	      }      
@@ -170,7 +159,8 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	      //  System.out.println("fichier ajouté : " +fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()]);
 	      fichiersFiltres[indexFichier] = fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()];
 	    }
-    
+
+	    
 		this.tableauLignes  = fichiersFiltres;  
 	}
 

@@ -60,4 +60,5 @@ public class RowFile {
 	public String toString()  {
 		return fichierMappe.toString();
 	}
+
 }
