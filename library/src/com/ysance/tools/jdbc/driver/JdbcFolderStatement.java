@@ -17,6 +17,7 @@ import java.sql.Types;
 import java.util.Calendar;
 
 import com.ysance.tools.jdbc.driver.resultsets.FolderResultSet;
+import com.ysance.tools.jdbc.driver.sql.SQLValidator;
 
 import com.ysance.tools.jdbc.driver.preparedstatement.metadata.JdbcFolderStatementParameterMetaData;
 
@@ -28,7 +29,7 @@ public class JdbcFolderStatement implements PreparedStatement {
 	
 	private String preparedStatement;
 	
-	private FolderResultSet rsFichiers;
+	private FolderResultSet rsFinal;
 	
 	//public static final String DUMMY_REQUEST = "SELECT * FROM /temp ";
 	public static final String DUMMY_REQUEST = "SELECT FILeNAME, FileNamE , FileName FROM /temp where size < 10000";
@@ -94,11 +95,21 @@ public class JdbcFolderStatement implements PreparedStatement {
 
 	public ResultSet executeQuery(String query) throws SQLException {
 	 //  //  System.out.println("JdbcFolderStatement.executeQuery()");
-
-	  rsFichiers = new FolderResultSet(); 
-	  rsFichiers.populateData(query);
+		SQLValidator validator = new SQLValidator(query);
+		
+		
+		FolderResultSet rsTravail = new FolderResultSet(); 
+		rsTravail.populateData(validator);
 	 //  //  System.out.println("Youpi");
-      return rsFichiers;
+
+	    
+	    // Application du GROUP BY
+
+	    // Application du ORDER BY	  	
+	  	
+	  	rsFinal = rsTravail;
+	  	
+      return rsFinal;
 	}
 
 	public int executeUpdate(String arg0) throws SQLException {
@@ -797,7 +808,7 @@ public class JdbcFolderStatement implements PreparedStatement {
      */
     public ResultSetMetaData getMetaData() throws SQLException {
     	//  System.out.println("JdbcFolderStatement.getMetaData()");
-    	return rsFichiers.getMetaData();
+    	return rsFinal.getMetaData();
     }
 
     /**

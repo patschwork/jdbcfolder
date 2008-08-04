@@ -44,6 +44,13 @@ public class JdbcFolderExceptions {
 		public NoClauseFoundException() {
 			super("E006 - No clause found while WHERE word found");		
 		}
+	}
+	
+	/** Erreur 001 */
+	public static class RequestMustBeginBySelectException extends SQLException{
+		public RequestMustBeginBySelectException() {
+			super("E007 - Request MUST begin by a SELECT ");		
+		}
 	}	
 
 	
@@ -66,5 +73,13 @@ public class JdbcFolderExceptions {
 		public NoDatasetFieldFoundAtPositionException(int aPosition) {
 			super("E102 - No field returned by query found at position "+aPosition);		
 		}
-	}		
+	}
+	
+	/** Erreur 102 */
+	public static class GenericBadRequestException extends SQLException{
+		public GenericBadRequestException() {
+			super("E999 - Invalid SQL request");		
+		}
+	}
+	
 }
