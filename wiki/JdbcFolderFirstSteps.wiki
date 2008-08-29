@@ -43,15 +43,11 @@ No login information to enter ( by now )
 
 == Configure the technology ==
 
-  # Go in the *Topology -> Logical architecture* , and insert a new technology.
-    * Name : JdbcFolder
-    * Code : JDBCFOLDER
-    * Type : Database or file (JDBC/ODBC)
-
-  # Select « Use a catalogue » write : Catalog
-  # Insert new logical schema ( ex : JFLDR_TEST )
+  # Insert new logical schema ( ex : JFLDR_TEST ) in the File Technology
 
   # Go in the *Topology -> Physical architecture* and insert a new Dataserver ( ex : JDBCFOLDER_TEST )
+  # Set the driver class as _com.ysance.tools.jdbc.driver.JdbcFolderDriver
+  # Set the driver URL as _jdbc:folder_
 
   # Under the server, add a new physical schema, it can be blank.
   # Associate the logical and the physical schemas in a context.
