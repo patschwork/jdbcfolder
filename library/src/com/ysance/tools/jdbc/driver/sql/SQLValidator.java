@@ -8,8 +8,10 @@ import java.util.Arrays;
 
 import com.ysance.tools.jdbc.driver.JdbcFolderExceptions;
 import com.ysance.tools.jdbc.driver.JdbcFolderExceptions.NoClauseFoundException;
+import com.ysance.tools.jdbc.driver.resultsets.metadata.FolderResultSetMetaData;
+import com.ysance.tools.jdbc.driver.resultsets.row.RowFile;
 
-public class SQLValidator implements SQLGrammar {
+public class SQLValidator implements SQLGrammar, ParsingUtilities {
 	
 	ArrayList requete;
 	int positionSelect   = -1;  
@@ -31,115 +33,129 @@ public class SQLValidator implements SQLGrammar {
 		if ( positionSelect < 0 ) throw new JdbcFolderExceptions.NoSelectWordFoundException();
 		if ( positionSelect > 0 ) throw new JdbcFolderExceptions.RequestMustBeginBySelectException();
 		if ( positionFrom < 0 )   throw new JdbcFolderExceptions.NoFromWordFoundException();
-
-		/*if (positionWhere > 0) {			
-		  clauseWhere =  this.requete.substring(positionWhere + SQLFormatter.WHERE_WORD.length());
-				
-		  if (clauseWhere.trim().length() == 0) throw new NoClauseFoundException();
-		}	*/
 		
-		/*StringBuffer requeteRetournee = new StringBuffer();
-		for (int i = 0; i < requeteDecoupee.size(); i++) {
-			RequestWord motRequete = (RequestWord)requeteDecoupee.get(i);
-			// Si c'est une valeur, on la laisse telle quelle
-			if (motRequete.kind == RequestWord.KIND_UNKNOWN) {
-				requeteRetournee.append(motRequete.word);				
-			} else {
-				
-				String motMajuscule = motRequete.word.toUpperCase();
-				if (   (    (motMajuscule.trim().length() == 2)
-						 && (motMajuscule.startsWith(AND_OPERATOR) || motMajuscule.startsWith(OR_OPERATOR)
-					   )
-					|| (    (motMajuscule.trim().length() > 2 )
-						 && (    (motMajuscule.startsWith(AND_OPERATOR) && " ".equals(motMajuscule.substring(3,4)))
-						      || (motMajuscule.startsWith(OR_OPERATOR) && " ".equals(motMajuscule.substring(2,3))))))) {
-					if (motMajuscule.startsWith(AND_OPERATOR)) {
-						motMajuscule = AND_JAVA_OPERATOR+ motMajuscule.substring(3);
-					}
-					if (motMajuscule.startsWith(OR_OPERATOR)) {
-						motMajuscule = OR_JAVA_OPERATOR+ motMajuscule.substring(2);
-					}
-				}
-				motMajuscule = motMajuscule.replaceAll("\\(",               " ( ");            				
-				motMajuscule = motMajuscule.replaceAll("\\)",               " ) ");            								
-				motMajuscule = motMajuscule.replaceAll(" "+AND_OPERATOR+" "," "+AND_JAVA_OPERATOR+" ");            
-				motMajuscule = motMajuscule.replaceAll(" "+ OR_OPERATOR+" "," "+ OR_JAVA_OPERATOR+" ");            
-				motMajuscule = motMajuscule.replaceAll("=",               "==");            
-				requeteRetournee.append(motMajuscule);
-			}
-		}	*/	
 	}
 	
-	public String getCatalogPath() {
-		StringBuffer catalogue = new StringBuffer();
-		int finFrom  = positionWhere;
-		finFrom  = finFrom == -1 ? positionGroupBy : finFrom;
-		finFrom  = finFrom == -1 ? positionOrderBy : finFrom;
-		finFrom  = finFrom == -1 ? requete.size()  : finFrom;
-		for ( int index = positionFrom + 1; index < finFrom ; index++ ) {
-			catalogue.append(requete.get(index));
-			catalogue.append(" ");
-		}
-		return catalogue.toString();
-
-		//return this.requete.substring(positionFrom + SQLFormatter.FROM_WORD.length(), positionWhere < 0 ? this.requete.length() : positionWhere).trim();
-	}
-	
-	public StringTokenizer getFields() {
+	/**
+	 * 
+	 * @return a HashMap containing, for each expression in the SELECT clause, the alias as the key and a RequestFieldSelected as the value
+	 */
+	/*public StringTokenizer getFields() {
 		StringBuffer fields = new StringBuffer();
 		int finFields  = positionFrom;
 		for ( int index = positionSelect + 1; index < finFields ; index++ ) {
+			System.out.println(requete.get(index));
 			fields.append(requete.get(index));
 			fields.append(" ");
 		}
 		return new StringTokenizer(fields.toString(), ",");
 		//return new StringTokenizer(this.requete.substring(positionSelect + SQLFormatter.SELECT_WORD.length(), positionFrom), ",");	
-	}
+	}*/
 	
-	// retourne la clause WHERE sous forme de chaine
+	/**
+	 * 
+	 * @return a HashMap containing, for each expression in the SELECT clause, the alias as the key and a RequestFieldSelected as the value
+	 */
+	public HashMap getFields() {
+		//StringBuffer fields = new StringBuffer();
+		int finFields  = positionFrom;
+		
+		
+		ArrayList listeChamps = new ArrayList();
+		ArrayList listeAliasChamps = new ArrayList();
+		
+		for ( int index = positionSelect + 1; index < finFields ; index++ ) {
+			RequestFieldSelected aSelectedField = new RequestFieldSelected();
+			
+			// La règle :
+			// EXPRESSION [separateur alias] [alias]
+			// Tant qu'on arrive pas à un séparateur de groupe, on alimente l'expression de aSelectedField
+			// C'est cette variable qui nous donnera ensuite les infos nécessaires
+			RequestWord aRequestWord = null;
+			
+			boolean finDeGroupe = false;
+			
+			while (!finDeGroupe && index < finFields ) {
+				aRequestWord = (RequestWord)requete.get(index);
+				
+				aSelectedField.addWord(aRequestWord);
+				
+				for (int indexSeparateur = 0; indexSeparateur < separateursGroupe.length; indexSeparateur++) {
+					finDeGroupe = finDeGroupe || ( aRequestWord.toString().lastIndexOf(',') == aRequestWord.toString().trim().length() - 1) ;
+				}		
+				
+				index++;				
+			}
+			
+			if (aSelectedField.getWordCount() > 0) {
+				listeChamps.add(aSelectedField);					
+
+				System.out.println(aSelectedField.toString());
+			}
+		}
+		return null;
+		//return new StringTokenizer(this.requete.substring(positionSelect + SQLFormatter.SELECT_WORD.length(), positionFrom), ",");	
+	}	
+	
+	/**
+	 * Return the WHERE clause as a String
+	 * This form is used when several datasets are present in the request, therefore no one can be determined as default
+	 */ 
 	public String getWhereClause() {
+		return this.getWhereClause(null);
+	}
+
+	/**
+	 * Return the WHERE clause as a String
+	 * @param aTableAlias : The default alias used to prefix fields, if null, no default dataset
+	 * @return The request with fields prefixed with their dataset's alias and   
+	 */ 
+	public String getWhereClause(String aTableAlias) {
+		if (aTableAlias == null ) {
+			aTableAlias = "";
+		} else {
+			aTableAlias = aTableAlias+".";
+		}
 		StringBuffer whereClause = new StringBuffer();		
 		if ( positionWhere >= 0 ) {
 			int finWhere  = positionGroupBy;
 			finWhere  = finWhere == -1 ? positionOrderBy : finWhere;
 			finWhere  = finWhere == -1 ? requete.size()  : finWhere;
 			for ( int index = positionWhere + 1; index < finWhere ; index++ ) {
-				whereClause.append(requete.get(index));
+				RequestWord aRequestWord = (RequestWord)requete.get(index);
+				
+				if ( aRequestWord.kind == RequestWord.KIND_UNKNOWN ) {
+					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.SIZE_FIELD, aTableAlias+RowFile.getMethodForField(FolderResultSetMetaData.SIZE_FIELD));
+					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.FILENAME_FIELD, aTableAlias+RowFile.getMethodForField(FolderResultSetMetaData.FILENAME_FIELD));
+					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.EXTENSION_FIELD, aTableAlias+RowFile.getMethodForField(FolderResultSetMetaData.EXTENSION_FIELD));            
+				}
+				//System.out.println(aRequestWord.word);
+				whereClause.append(aRequestWord.word);
 				whereClause.append(" ");
 			}
 		}
 		return whereClause.toString();
-	}
-	
+	}	
 	/**
 	 * Retourne les différentes sources de données
 	 * 	La HashMap contient en clé l'alias du catalogue donné par l'utilisateur,
 	 *   le timestamp sinon 
 	 * @return
 	 */
-	public HashMap getCatalogs() {		
-		HashMap catalogues = new HashMap();
-		
-		ArrayList listeCatalogues = new ArrayList();
-
+	public HashMap getCatalogs() throws SQLException{		
 		int finFrom  = positionWhere;
 		finFrom  = finFrom == -1 ? positionGroupBy : finFrom;
 		finFrom  = finFrom == -1 ? positionOrderBy : finFrom;
 		finFrom  = finFrom == -1 ? requete.size()  : finFrom;
-		
-		//String clauseFrom = requete.su;
-
-		// Le caractère de fermeture correspondant à un caractère d'ouverture doit se trouver à la même position dans le tableau 
-		char[] ouvertureGroupe = {'"','('};
-		char[] fermetureGroupe = {'"',')'};
-		
-		char[] separateurs = {','};		
 				
-		final int AUCUN_GROUPE = -1;
+
+		HashMap catalogues = new HashMap();		
+		ArrayList listeCatalogues = new ArrayList();
+		
 		int groupe = AUCUN_GROUPE;
-		int indexLettre = 0;
 		int[] compteurGroupe = {0,0};
 		boolean creerCatalogue = false;
+		int catalogKind = RequestCatalog.CATALOG_KIND_SINGLE;
 		StringBuffer catalogue = new StringBuffer();
 
 		//System.out.println(listeCatalogues.toString());
@@ -148,11 +164,11 @@ public class SQLValidator implements SQLGrammar {
 		for ( int index = positionFrom + 1; index < finFrom ; index++ ) {
 			String portionRequete = requete.get(index).toString();
 			// On travaille sur chaque lettre
-			for ( indexLettre = 0; indexLettre < portionRequete.length(); indexLettre++ ) {
+			for ( int indexLettre = 0; indexLettre < portionRequete.length(); indexLettre++ ) {
 				creerCatalogue = false;
 				char caractereEnCours = portionRequete.charAt(indexLettre);
-				int typeOuvertureGroupe = Arrays.binarySearch(ouvertureGroupe,caractereEnCours);
-				int typeFermetureGroupe = Arrays.binarySearch(fermetureGroupe,caractereEnCours);
+				int typeOuvertureGroupe = Arrays.binarySearch(ouvertureGroupeCatalogue,caractereEnCours);
+				int typeFermetureGroupe = Arrays.binarySearch(fermetureGroupeCatalogue,caractereEnCours);
 				
 				// Si on est dans un groupe
 				if (groupe != AUCUN_GROUPE) {
@@ -166,30 +182,40 @@ public class SQLValidator implements SQLGrammar {
 					// Si on a un caractère d'ouverture de groupe
 					if ((typeOuvertureGroupe > AUCUN_GROUPE)) {
 						groupe = typeOuvertureGroupe;
+						catalogKind = RequestCatalog.CATALOG_KIND_GROUP;
 					} else {
-						creerCatalogue = Arrays.binarySearch(separateurs,caractereEnCours) >= 0 ;
+						creerCatalogue = Arrays.binarySearch(separateursGroupe,caractereEnCours) >= 0 ;
 					}
 				}
 
 				// Soit on ajoute un catalogue, soit on ajoute la caractère au catalogue en cours
 				if (creerCatalogue) {
-					listeCatalogues.add(catalogue);
+					listeCatalogues.add(new RequestCatalog(catalogue,catalogKind));
 					catalogue = new StringBuffer();
+					catalogKind = RequestCatalog.CATALOG_KIND_SINGLE;
 				} else {
 					catalogue.append(caractereEnCours);					
 				}				
 			}
-		}		
-		listeCatalogues.add(catalogue);
+		}
+		if ( catalogue.toString().length() > 0 )  {
+			listeCatalogues.add(new RequestCatalog(catalogue,catalogKind));
+		}
+		if (listeCatalogues.size() == 0 ) {
+			throw new JdbcFolderExceptions.NoCatalogFoundException();
+		}
 
+		// On calcule les alias des différents catalogues
 		for (int i = 0; i < listeCatalogues.size(); i++) {
+			RequestCatalog catalogueEnCours = (RequestCatalog)listeCatalogues.get(i);
+			
 			// Pour l'alias du dataset, on prend le dernier mot. Sauf si on est dans le cadre d'un groupe, dans ce cas, 
-			String[] motsCatalogue = listeCatalogues.get(i).toString().trim().split(" ");
+			String[] motsCatalogue = catalogueEnCours.toString().trim().split(" ");
 
 			String dataSet = "";
 			
-			String dernierMot = motsCatalogue[motsCatalogue.length - 1].trim();
-			boolean dernierMotGroupe = Arrays.binarySearch(fermetureGroupe,dernierMot.charAt(dernierMot.length()-1)) >= 0;
+			String dernierMot = motsCatalogue[motsCatalogue.length - 1].trim();			
+			boolean dernierMotGroupe = Arrays.binarySearch(fermetureGroupeCatalogue,dernierMot.charAt(dernierMot.length()-1)) >= 0;
 				
 			int nbMots = motsCatalogue.length;
 			String aliasDataSet = "DATASET_"+i; 
@@ -201,10 +227,12 @@ public class SQLValidator implements SQLGrammar {
 				aliasDataSet = dernierMot; 
 			} 
 			for (int j = 0; j < nbMots; j++) {
-				dataSet = dataSet + motsCatalogue[j];
+				dataSet = dataSet + " " + motsCatalogue[j];
 			}
 			
-			catalogues.put(aliasDataSet, dataSet);
+			// ici, on associe le catalogue et son alias
+			// On recrée un nouvel objet requestCatalog
+			catalogues.put(aliasDataSet, new RequestCatalog(new StringBuffer(dataSet.trim()),catalogueEnCours.getCatalogKind()));
 		}
 		
 		return catalogues;

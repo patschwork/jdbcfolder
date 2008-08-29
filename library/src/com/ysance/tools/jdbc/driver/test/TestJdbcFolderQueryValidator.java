@@ -9,45 +9,16 @@ public class TestJdbcFolderQueryValidator {
 
 	public static void main(String[] args) {
 		
-		testValidator();
-		HashMap catalogues = getCatalogs();
-		
-		Object[] cles = catalogues.keySet().toArray();
-		
-		for (int indexCle = 0; indexCle < cles.length; indexCle++) {
-			System.out.println(cles[indexCle].toString());
-		}
-		
+		testValidator();	
 		
 	}
-	
-	static public HashMap getCatalogs() {		
-		HashMap catalogues = new HashMap();
-		
-		String listeCatalogues = " /temp ,/temp2 2";		
-		// Une fois la clause FROM reconstituée, on travaille dessus
-		final int AUCUN_GROUPE    = 0;
-		final int GROUPE_PROTEGE  = 1;
-		final int GROUPE_SELECT   = 2;
-		int groupe = AUCUN_GROUPE;
-
-		int indexLettre = 0;
-		
-		for ( indexLettre = 0; indexLettre <= listeCatalogues.length(); indexLettre++ ) {
-		
-		}
-		
-		
-		return catalogues;
-	}	
 
 	static public void testValidator() {
 		try {
-			String query = "select * from titi";
+			String query = "select titi, toto, tata + tutu + 'bloubloublou'  from titi";
 			System.out.println(" ================  "+ query);
 			SQLValidator validator = new SQLValidator(query);
 			System.out.println("validator.getFields() "+ validator.getFields());
-			System.out.println("validator.getCatalogPath() "+ validator.getCatalogPath());
 			System.out.println("validator.getWhereClause() "+ validator.getWhereClause());
 
 			HashMap catalogues = validator.getCatalogs();			
@@ -60,7 +31,6 @@ public class TestJdbcFolderQueryValidator {
 			System.out.println(" ================  "+ query);
 			validator = new SQLValidator(query);
 			System.out.println("validator.getFields() "+ validator.getFields());
-			System.out.println("validator.getCatalogPath() "+ validator.getCatalogPath());
 			System.out.println("validator.getWhereClause() "+ validator.getWhereClause());
 
 			catalogues = validator.getCatalogs();			
@@ -69,18 +39,35 @@ public class TestJdbcFolderQueryValidator {
 				System.out.println("validator.getCatalogs() "+ cles[indexCle].toString()+ "   " + catalogues.get(cles[indexCle]));
 			}
 			
-			query = "select * from titi, toto B where toto = '''blablabla blublublu''' ";
+			query = "select * from titi, (select * from TOTO) B where toto = '''blablabla blublublu''' ";
 			System.out.println(" ================  "+ query);
 			validator = new SQLValidator(query);
 			System.out.println("validator.getFields() "+ validator.getFields());
-			System.out.println("validator.getCatalogPath() "+ validator.getCatalogPath());
 			System.out.println("validator.getWhereClause() "+ validator.getWhereClause());
 
 			catalogues = validator.getCatalogs();			
 			cles = catalogues.keySet().toArray();			
 			for (int indexCle = 0; indexCle < cles.length; indexCle++) {
 				System.out.println("validator.getCatalogs() "+ cles[indexCle].toString()+ "   " + catalogues.get(cles[indexCle]));
-			}				
+			}
+			
+			query = "select * from ";
+			System.out.println(" ================  "+ query);
+			validator = new SQLValidator(query);
+			System.out.println("validator.getFields() "+ validator.getFields());
+			System.out.println("validator.getWhereClause() "+ validator.getWhereClause());
+
+			try {
+				catalogues = validator.getCatalogs();			
+				cles = catalogues.keySet().toArray();			
+				for (int indexCle = 0; indexCle < cles.length; indexCle++) {
+					System.out.println("validator.getCatalogs() "+ cles[indexCle].toString()+ "   " + catalogues.get(cles[indexCle]));
+				}
+				
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				System.out.println("Erreur de test levée en succès");
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();

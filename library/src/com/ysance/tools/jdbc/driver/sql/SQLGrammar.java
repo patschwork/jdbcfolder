@@ -10,6 +10,7 @@ public interface SQLGrammar extends com.ysance.tools.jdbc.driver.JdbcFolderGramm
 	public static String BY_WORD			  = "BY";	
 	public static String SELECT_WORD          = "SELECT";	
 	public static String WHERE_WORD           = "WHERE";	
+	public static String FIELD_ALIAS_WORD     = "AS";	
 
 	
 	// SQL OPERATORS

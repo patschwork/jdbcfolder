@@ -105,6 +105,13 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 	private String catalogue = "";
 	private String schemaName = "";
 	
+	public FolderResultSetMetaData() {
+		colonnesPossibles = new Hashtable();
+		colonnes= new LinkedHashMap();
+		positionColonne = new Hashtable();
+		positionColonneInverse = new Hashtable();
+	}	
+	
 	public FolderResultSetMetaData(String aCatalogue) {
 		//  System.out.println("FolderResultSetMetaData.FolderResultSetMetaData()");
 		this.catalogue = aCatalogue;
@@ -148,6 +155,25 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 
 		return positionEnCours.intValue();
 	}
+	
+	/**
+	 * Ajoute une colonne au ResultSet, change son nom éventuellement et l'associe à une position
+	 * @param aField : nom d'une colonne
+	 * @return position de la colonne dans le ResultSet
+	 */
+	public int addLazyStringColumn(String aField) {
+		//  System.out.println("FolderResultSetMetaData.addColumn() "+aField);
+		String uniqueField = this.getFinalFieldName(aField);
+		FileFieldMetadata uniqueFieldDefinition = new FileFieldMetadata(this.catalogue, String.class.getName(), 255, FILENAME_FIELD, FILENAME_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true);
+		uniqueFieldDefinition.setColumnLabel(uniqueField);
+			
+		Integer positionEnCours = new Integer(colonnes.size());
+		positionColonne.put(uniqueField, positionEnCours);
+		positionColonneInverse.put(positionEnCours, uniqueField);
+		colonnes.put(uniqueField, uniqueFieldDefinition);			
+
+		return positionEnCours.intValue();
+	}	
 	
 	/**
 	 * Ajoute toutes les colonnes possibles au dataset 
