@@ -45,7 +45,7 @@ No login information to enter ( by now )
 
   # Insert new logical schema ( ex : JFLDR_TEST ) in the File Technology
 
-  # Go in the *Topology -> Physical architecture* and insert a new Dataserver ( ex : JDBCFOLDER_TEST )
+  # Go in the *Topology -> Physical architecture* and insert a new Dataserver ( ex : JDBCFOLDER_TEST ) always for the File technology.
   # Set the driver class as _com.ysance.tools.jdbc.driver.JdbcFolderDriver
   # Set the driver URL as _jdbc:folder_
 
