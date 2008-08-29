@@ -24,13 +24,31 @@ import java.util.Map;
 
 public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 	
-	protected int positionCurseur = -1;
+	static final int POSITION_BEFORE_FIRST_ROW = -1;
+	
+	/**
+	 * Attention !!!
+	 * positionCurseur est la position dans le tableau de lignes. Il va de 0 à tableauLignes.length - 1
+	 * tandis que les appels aux fonctions de positionnement des lignes vont de 1 à  tableauLignes.length
+	 */
+	protected int positionCurseur = POSITION_BEFORE_FIRST_ROW;
 	 
 	protected java.lang.Object[] tableauLignes;
 
-	public boolean absolute(int arg0) throws SQLException {
-		//  System.out.println("JdbcFolderAbstractResultSet.absolute()");
-		return false;
+	public boolean absolute(int aPosition) throws SQLException {
+		// Pour être raccord avec les indices de tableau, on décrémente la position
+		aPosition--;
+		boolean inTheResultSetSet = (aPosition > POSITION_BEFORE_FIRST_ROW && aPosition < tableauLignes.length );
+		if (inTheResultSetSet) {
+			this.positionCurseur = aPosition;
+		} else {
+			if (aPosition <= POSITION_BEFORE_FIRST_ROW) {
+				this.positionCurseur = POSITION_BEFORE_FIRST_ROW;
+			} else {
+				this.positionCurseur = tableauLignes.length;
+			}
+		}
+		return inTheResultSetSet;
 	}
 
 	public void afterLast() throws SQLException {
@@ -69,8 +87,8 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 	}
 
 	public boolean first() throws SQLException {
-		//  System.out.println("JdbcFolderAbstractResultSet.first()");
-		return false;
+		this.absolute(1);
+		return this.tableauLignes.length > 0;
 	}
 
 	public Array getArray(int arg0) throws SQLException {
@@ -341,8 +359,8 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 	}
 
 	public int getRow() throws SQLException {
-		//  System.out.println("JdbcFolderAbstractResultSet.getRow()");
-		return 0;
+		// Pour être raccord avec la plage de valeur attendue, on retourne la position incrémentée
+		return positionCurseur + 1;
 	}
 
 //	JSE 6
@@ -470,12 +488,12 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 
 	public boolean isAfterLast() throws SQLException {
 		//  System.out.println("JdbcFolderAbstractResultSet.isAfterLast()");
-		return false;
+		return positionCurseur > (tableauLignes.length - 1);
 	}
 
 	public boolean isBeforeFirst() throws SQLException {
 		//  System.out.println("JdbcFolderAbstractResultSet.isBeforeFirst()");
-		return false;
+		return positionCurseur == POSITION_BEFORE_FIRST_ROW;
 	}
 
 	public boolean isClosed() throws SQLException {
@@ -484,18 +502,22 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 	}
 
 	public boolean isFirst() throws SQLException {
-		//  System.out.println("JdbcFolderAbstractResultSet.isFirst()");
-		return false;
+		//  System.out.println("JdbcFolderAbstractResultSet.isFirst()");		
+		return positionCurseur == 0;
 	}
 
 	public boolean isLast() throws SQLException {
 		//  System.out.println("JdbcFolderAbstractResultSet.isLast()");
-		return false;
+		return positionCurseur == (tableauLignes.length - 1);
 	}
 
+	/**
+	 * @todo implémenter type <code>TYPE_FORWARD_ONLY</code>
+	 */
 	public boolean last() throws SQLException {
 		//  System.out.println("JdbcFolderAbstractResultSet.last()");
-		return false;
+		this.absolute(-1);
+		return this.tableauLignes.length > 0;
 	}
 
 	public void moveToCurrentRow() throws SQLException {

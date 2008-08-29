@@ -32,7 +32,11 @@ public class RequestWord implements Comparable {
     	    return this.word.equals(((RequestWord)obj).word) && this.kind == ((RequestWord)obj).kind ;		    	
     	}
     	return false;
-    }			
+    }
+    
+    public int getKind() {
+    	return this.kind;
+    }
 	
 	public String toString() {
 		return this.word;

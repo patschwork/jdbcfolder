@@ -25,7 +25,24 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	private java.io.File   catalogue;
 	
 	FolderResultSetMetaData metaData;
-	ArrayList listeFiltres = new ArrayList();	
+	ArrayList listeFiltres = new ArrayList();
+	
+	public FolderResultSet() {
+	}
+	
+	public FolderResultSet(String aCatalog) throws SQLException {
+		// Vérification existence répertoire		
+		this.catalogue = new File(aCatalog);
+		if (!this.catalogue.exists()) throw new JdbcFolderExceptions.TableDoesntExistException(this.catalogue.getAbsolutePath()); 
+		if (!this.catalogue.isDirectory()) throw new JdbcFolderExceptions.TableIsNotDirectoryException(this.catalogue.getAbsolutePath()) ;
+
+	    
+		FolderResultSetMetaData metadata = (FolderResultSetMetaData)this.getMetaData(); 
+		metadata.addAllPossibleColumns();		
+		
+		populateData();
+		
+	}
 	
 	public ResultSetMetaData getMetaData() throws SQLException {
 		//  System.out.println("JdbcFolderResultSet.getMetaData()");
@@ -69,22 +86,44 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 		}
 				
 	  return ((RowFile)(tableauLignes[positionCurseur])).getData(definitionColonne.columnName);	
-	}	
+	}
 	
-	public void populateData(SQLValidator aValidator) throws SQLException {
+	/**
+	 * renvoie l'objet ligne correspondant à la position demandée.
+	 * Pour rester cohérent avec les manipulations de lignes des résultset, la première ligne se trouve à la position 1
+	 * @param aPositionLigne : la position de la ligne voulue dans le dataset
+	 * @return
+	 */
+	protected RowFile getRowFile(int aPositionLigne) {
+		return (RowFile)tableauLignes[aPositionLigne + 1];
+	}
+	
+//	public void populateData(SQLValidator aValidator) throws SQLException {
+	public void populateData() throws SQLException {
 
-		String cheminCatalogue = aValidator.getCatalogPath();
+		//String cheminCatalogue = aValidator.getCatalogPath();
 		
-		String clauseWhere = JavaScriptFilterFormatter.format(aValidator.getWhereClause());  
-		
-		// Vérification existence répertoire		
-		File newCatalogue = new File(cheminCatalogue.trim());
+							
+		/*File newCatalogue = new File(cheminCatalogue);
 		if (!newCatalogue.exists()) throw new JdbcFolderExceptions.TableDoesntExistException(newCatalogue.getAbsolutePath()); 
-		if (!newCatalogue.isDirectory()) throw new JdbcFolderExceptions.TableIsNotDirectoryException(newCatalogue.getAbsolutePath()) ;
-					
-		this.catalogue = newCatalogue;		
+		if (!newCatalogue.isDirectory()) throw new JdbcFolderExceptions.TableIsNotDirectoryException(newCatalogue.getAbsolutePath()) ;*/
+
+		//this.catalogue = newCatalogue;		
+
+	    // Récupération des fichiers du répertoire "table"
+		java.io.File[] liste = catalogue.listFiles();            
+	    
+	    RowFile[] fichiers = new RowFile[liste.length]; 
+	    for (int indexListeFile =0; indexListeFile < liste.length; indexListeFile++) {
+	      fichiers[indexListeFile] = new RowFile(liste[indexListeFile]);
+	    }
+	    
+		//FolderResultSetMetaData metadata = (FolderResultSetMetaData)this.getMetaData(); 
+		//metadata.addAllPossibleColumns();	    
+	    
+	    this.tableauLignes  = fichiers;
 		
-		StringTokenizer champs = aValidator.getFields();
+		/*StringTokenizer champs = aValidator.getFields();
 
 		// Détermination des champs à retourner
 		while (champs.hasMoreTokens()) {
@@ -99,17 +138,11 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 					metadata.addColumn(champ);
 				}
 			}
-		}
+		}  
+	    
+	    
+	    String clauseWhere = JavaScriptFilterFormatter.format(aValidator.getWhereClause());  
 		
-	    // Récupération des fichiers du répertoire "table"
-		java.io.File[] liste = catalogue.listFiles();            
-	    
-	    RowFile[] fichiers = new RowFile[liste.length]; 
-	    for (int indexListeFile =0; indexListeFile < liste.length; indexListeFile++) {
-	      fichiers[indexListeFile] = new RowFile(liste[indexListeFile]);
-	    }
-	    
-	    
 	    // Application des filtres de la clause where 
 	    java.util.ArrayList indexFichiers = new java.util.ArrayList();
 	    
@@ -161,7 +194,7 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	    }
 
 	    
-		this.tableauLignes  = fichiersFiltres;  
+		this.tableauLignes  = fichiersFiltres;  */
 	}
 
 }

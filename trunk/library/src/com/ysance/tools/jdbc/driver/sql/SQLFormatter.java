@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 import com.ysance.tools.jdbc.driver.JdbcFolderGrammar;
 
-public class SQLFormatter implements SQLGrammar {	
+public class SQLFormatter implements SQLGrammar, ParsingUtilities {	
 	
 	/**
 	 * Méthode devant retourner le nom des champs et les commandes SQL en majuscule mais pas les autres données
@@ -15,37 +15,10 @@ public class SQLFormatter implements SQLGrammar {
 	 * @return
 	 */
 	public static ArrayList upperCaseSQLWordsAndFields(String aRequete) {
-		
-		char[] separateursMots = {' ',')','(','\n','\t'};
-		
-		Arrays.sort(separateursMots);
-		
-		//HashMap elements = new HashMap();
-		
-		// On protège le nom des "tables" en les entourant de doubles quotes
-		/*String requeteMajuscules = aRequete.toUpperCase(); 
-		int positionFrom   = requeteMajuscules.indexOf(FROM_WORD);		
-		aRequete = aRequete.substring(0, positionFrom + FROM_WORD.length() )+" \" "+aRequete.substring(positionFrom + FROM_WORD.length() );
-		
-		requeteMajuscules = aRequete.toUpperCase(); 
-		int positionWhere   = requeteMajuscules.indexOf(WHERE_WORD);
-		if ( positionWhere > 0 ) {
-			aRequete = aRequete.substring(0, positionWhere )+" \" "+aRequete.substring(positionWhere);
-		} else {			
-			aRequete = aRequete+" \" ";
-		}*/
-		
-		final int AUCUNE_PROTECTION = 0; 
-		final int SIMPLE_APOSTROPHE = 1; 
-		final int DOUBLE_APOSTROPHE = 2; 		
-		final int DANS_CLAUSE_FROM  = 3;
 			
-		final String SIMPLE_APOSTROPHE_STRING = "'"; 
-		final String DEUX_APOSTROPHES_STRING = "''"; 		
+		//Arrays.sort(separateursMots);		
 
 		// Remplacement de 2 apostrophes par £doubleapos£
-		//aRequete = aRequete.replaceAll("''", SQLGrammar.JDBCFOLDER_DOUBLE_QUOTES);
-		
 		int indexDerniereApostrophe = aRequete.indexOf(SIMPLE_APOSTROPHE_STRING);
 		int indexDoubleApostrophe = 0;
 
@@ -126,7 +99,7 @@ public class SQLFormatter implements SQLGrammar {
 			  } else {
 				  // Si on trouve un séparateur de mots ou qu'on arrive à la dernière lettre de la requête, on ferme le mot courant
 				  //if ( c == ' ' || indexLettre == caracteresRequete.length - 1) {
-				  if ( Arrays.binarySearch(separateursMots,c) > -1 || indexLettre == caracteresRequete.length - 1) {				  
+				  if ( Arrays.binarySearch(separateursMots,c) > -1 || Arrays.binarySearch(separateursGroupe,c) > -1 || indexLettre == caracteresRequete.length - 1) {				  
 					  String motInsere = mot.toString().trim().toUpperCase();
 					  int typeMot = RequestWord.KIND_UNKNOWN;
 					  //requeteDecoupee.add(motInsere);
@@ -150,49 +123,5 @@ public class SQLFormatter implements SQLGrammar {
 		}		
 
 		return requeteDecoupee;
-		/*StringBuffer requeteRetournee = new StringBuffer();
-		for (int i = 0; i < requeteDecoupee.size(); i++) {
-			RequestWord motRequete = (RequestWord)requeteDecoupee.get(i);
-			// Si c'est une valeur, on la laisse telle quelle
-			if (motRequete.kind == RequestWord.KIND_UNKNOWN) {
-				requeteRetournee.append(motRequete.word);				
-			} else {
-				
-				String motMajuscule = motRequete.word.toUpperCase();
-				if (   (    (motMajuscule.trim().length() == 2)
-						 && (motMajuscule.startsWith(AND_OPERATOR) || motMajuscule.startsWith(OR_OPERATOR)
-					   )
-					|| (    (motMajuscule.trim().length() > 2 )
-						 && (    (motMajuscule.startsWith(AND_OPERATOR) && " ".equals(motMajuscule.substring(3,4)))
-						      || (motMajuscule.startsWith(OR_OPERATOR) && " ".equals(motMajuscule.substring(2,3))))))) {
-					if (motMajuscule.startsWith(AND_OPERATOR)) {
-						motMajuscule = AND_JAVA_OPERATOR+ motMajuscule.substring(3);
-					}
-					if (motMajuscule.startsWith(OR_OPERATOR)) {
-						motMajuscule = OR_JAVA_OPERATOR+ motMajuscule.substring(2);
-					}
-				}
-				motMajuscule = motMajuscule.replaceAll("\\(",               " ( ");            				
-				motMajuscule = motMajuscule.replaceAll("\\)",               " ) ");            								
-				motMajuscule = motMajuscule.replaceAll(" "+AND_OPERATOR+" "," "+AND_JAVA_OPERATOR+" ");            
-				motMajuscule = motMajuscule.replaceAll(" "+ OR_OPERATOR+" "," "+ OR_JAVA_OPERATOR+" ");            
-				motMajuscule = motMajuscule.replaceAll("=",               "==");            
-				requeteRetournee.append(motMajuscule);
-			}
-		}
-		
-		return requeteRetournee.toString(); */
-		//String result = requeteRetournee.toString(); 
-		/*if ( positionWhere > 0 ) {
-			result = result.replaceAll(" \" WHERE ", " WHERE " );
-		} else {
-			result = result.substring(0, result.length() - 2);
-		}
-		result = result.replaceAll(" FROM \" ",       " FROM ");*/
-
-		//result = result.replaceAll(DOUBLE_QUOTES,    "''");
-
-		
-		//return result;
 	}
 }

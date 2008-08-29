@@ -15,11 +15,20 @@ import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.Calendar;
+import java.util.HashMap;
 
 import com.ysance.tools.jdbc.driver.resultsets.FolderResultSet;
+import com.ysance.tools.jdbc.driver.resultsets.metadata.FolderResultSetMetaData;
+import com.ysance.tools.jdbc.driver.resultsets.row.RowFile;
+import com.ysance.tools.jdbc.driver.sql.RequestCatalog;
 import com.ysance.tools.jdbc.driver.sql.SQLValidator;
 
+import com.ysance.tools.jdbc.driver.javascript.JavaScriptFilterFormatter;
 import com.ysance.tools.jdbc.driver.preparedstatement.metadata.JdbcFolderStatementParameterMetaData;
+
+
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
 
 public class JdbcFolderStatement implements PreparedStatement {
 	
@@ -92,22 +101,190 @@ public class JdbcFolderStatement implements PreparedStatement {
 		//  System.out.println("JdbcFolderStatement.executeBatch()");
 		return null;
 	}
+	
+	private ResultSet getCatalogAsResultSet(RequestCatalog aCatalog) throws SQLException {
+		if (aCatalog.getCatalogKind() == RequestCatalog.CATALOG_KIND_SINGLE) {
+			return new FolderResultSet(aCatalog.toString());
+		} else {
+			JdbcFolderStatement statement =  new JdbcFolderStatement(aCatalog.toString());
+			try {
+				return	statement.executeQuery();			
+			} finally {
+				statement.close();
+			}
+			
+		}
+	}
 
+
+	/**
+	 * Méthode de l'interface Statement
+	 * @param query : the query sent by user
+	 */
 	public ResultSet executeQuery(String query) throws SQLException {
-	 //  //  System.out.println("JdbcFolderStatement.executeQuery()");
+	    //  System.out.println("JdbcFolderStatement.executeQuery()");
 		SQLValidator validator = new SQLValidator(query);
 		
-		
-		FolderResultSet rsTravail = new FolderResultSet(); 
-		rsTravail.populateData(validator);
-	 //  //  System.out.println("Youpi");
+		Context cx = Context.enter();
+		Scriptable scope = cx.initStandardObjects();
+
+		try {		
+			HashMap catalogues = catalogues = validator.getCatalogs();					
+			Object[] cles = catalogues.keySet().toArray();
+
+            String filtre = "true";
+            StringBuffer script = new StringBuffer();
+            String indentation = "";
+	
+			// Permet de déterminer si tous les catalogues sont vides
+			boolean cataloguesVides = false;
+			// On echange les catalogues au format String par des catalogues au format DataSet
+			for (int indexCle = 0; indexCle < cles.length; indexCle++) {						
+				String aliasCatalogue = cles[indexCle].toString();
+
+				//System.out.println("validator.getCatalogs() "+ aliasCatalogue+ "   " + catalogues.get(cles[indexCle]));
+				
+				FolderResultSet catalogAsResultSet = (FolderResultSet)getCatalogAsResultSet((RequestCatalog)catalogues.get(cles[indexCle]));
+				// Un catalogue est vide si on est avant sa première ligne et sur la dernière  
+				cataloguesVides = cataloguesVides || ( catalogAsResultSet.isLast() && catalogAsResultSet.isBeforeFirst());			
+				catalogues.put(aliasCatalogue, catalogAsResultSet);				
+				
+				//System.out.println("validator.getCatalogs() 2 "+ aliasCatalogue+ "   " + catalogues.get(cles[indexCle]));
+				
+				// Ajout du dataset au scope javascript
+		        Scriptable jsArgs = Context.toObject(catalogAsResultSet, scope);
+		        scope.put(cles[indexCle].toString(), scope, jsArgs);
+		        
+		        
+		        script.append(indentation+aliasCatalogue+".first();\n");
+		        script.append(indentation+"while ("+aliasCatalogue+".next()) { \n");
+		        indentation = indentation + "  ";	        
+			}					
+			
+			//FolderResultSet rsTravail = new FolderResultSet(); 
+			//rsTravail.populateData(validator);
+		    if (cles.length == 1) {
+		    	filtre = validator.getWhereClause(cles[0].toString());	
+		    } else {
+		    	filtre = validator.getWhereClause();	
+		    }
+		      
+	    	filtre = JavaScriptFilterFormatter.format(filtre);
+    
+	    // S'il y a une clause where à traiter, c'est fait ici
+	    //if (fichiers.length > 0 && clauseWhere.trim().length() > 0 ) {
+	      //Context cx = Context.enter();
+	
+	          	
+	          //String ligneFichier = "DATASET_0.";
+	                                
+
+	          /*if (clauseWhere.trim().length() > 0 ) {
+		          filtre = clauseWhere;
+		          filtre = filtre.replaceAll(FolderResultSetMetaData.SIZE_FIELD, ligneFichier+RowFile.getMethodForField(FolderResultSetMetaData.SIZE_FIELD));
+		          filtre = filtre.replaceAll(FolderResultSetMetaData.FILENAME_FIELD, ligneFichier+RowFile.getMethodForField(FolderResultSetMetaData.FILENAME_FIELD));
+		          filtre = filtre.replaceAll(FolderResultSetMetaData.EXTENSION_FIELD, ligneFichier+RowFile.getMethodForField(FolderResultSetMetaData.EXTENSION_FIELD));            
+	          }*/
+	          
+	      	
+			    
+	          script.append(indentation+"if ( " +filtre + " ) {\n");
+	          script.append(indentation+indentation+"mapIndexesTables = new java.util.HashMap();\n");
+	          for (int indexCle = 0; indexCle < cles.length; indexCle++) {						
+		         //script.append(indentation+indentation+"indexFichiers.add(new java.lang.Integer("+ligneFichier+"getRow()))\n");
+				 script.append(indentation+indentation+"mapIndexesTables.put('"+cles[indexCle].toString()+"' ,new java.lang.Integer("+cles[indexCle].toString()+".getRow()));\n");
+	          }
+ 	          script.append(indentation+indentation+"indexFichiers.add(mapIndexesTables);\n");
+	          script.append(indentation+"}\n");
+	          
+
+	          // Fermeture des boucles sur les datasets source
+		      char[] tableauAccoladesFermantes = new char[cles.length];
+		      java.util.Arrays.fill(tableauAccoladesFermantes, '}');
+		      script.append(new String(tableauAccoladesFermantes));		        
+	          
+		      System.out.println(script.toString());        
+	                    
+			  // Application des filtres de la clause where 
+			  java.util.ArrayList indexFichiers = new java.util.ArrayList();
+			  Scriptable jsArgsindexFichiers = Context.toObject(indexFichiers, scope);
+	          scope.put("indexFichiers", scope, jsArgsindexFichiers);           
+
+
+	          FolderResultSet dataSetResultat = new FolderResultSet();	          
+	          Scriptable jsArgsDataSetResultat = Context.toObject(dataSetResultat, scope);
+	          scope.put("dataSetResultat", scope, jsArgsDataSetResultat);
+	          
+	          FolderResultSetMetaData dataSetResultatMetaData = new FolderResultSetMetaData();	          
+	          Scriptable jsArgsDataSetResultatMetaData = Context.toObject(dataSetResultatMetaData, scope);
+	          scope.put("dataSetResultatMetaData", scope, jsArgsDataSetResultatMetaData);
+	          
+	          //dataSetResultatMetaData.addLazyStringColumn(aField)
+	          
+	          //String s = requete;
+	
+	          Object result = cx.evaluateString(scope, script.toString(), "<cmd>", 1, null);
+	                   
+	          System.err.println(cx.toString(result));
+	          
+			    for (int indexFichier=0; indexFichier < indexFichiers.size(); indexFichier++) {
+				      //  System.out.println("fichier ajouté : " +fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()]);
+				      System.out.println(""+indexFichiers.get(indexFichier));
+				 }
+			    
+	      } catch (Exception ex) {
+	      	ex.printStackTrace();    
+	      } finally {
+	        Context.exit();
+	      }  	
+	    /*} else {
+  	      // S'il n'y a aucune clause where à traiter, on met toutes les lignes
+	      for (int i = 0; i < liste.length; i++ ) {
+	      	indexFichiers.add(new java.lang.Integer(i));
+	      }      
+	    }*/
+
+
+		    
+	    /*
+	    RowFile[] fichiersFiltres = new RowFile[indexFichiers.size()]; 
+	    for (int indexFichier=0; indexFichier < indexFichiers.size(); indexFichier++) {
+	      //  System.out.println("fichier ajouté : " +fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()]);
+	      fichiersFiltres[indexFichier] = fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()];
+	    }
 
 	    
+		this.tableauLignes  = fichiersFiltres;  
+		
 	    // Application du GROUP BY
 
-	    // Application du ORDER BY	  	
+ 	
+	  	// Renvoi des colonnes
+	  	rsFinal = rsTravail;*/
+
+	      validator.getFields();
+	      
+			/*StringTokenizer champs = aValidator.getFields();
+
+			// Détermination des champs à retourner
+			while (champs.hasMoreTokens()) {
+				String champ = champs.nextToken().trim();
+				FolderResultSetMetaData metadata = (FolderResultSetMetaData)this.getMetaData(); 
+				if (SQLGrammar.JOKER_WORD.equals(champ.trim())) {
+					metadata.addAllPossibleColumns();
+				} else {
+					if (!metadata.recognizeField(champ)){
+						throw new JdbcFolderExceptions.FieldNotFoundException(champ);				
+					} else {
+						metadata.addColumn(champ);
+					}
+				}
+			}  */
+
+	    // Application du ORDER BY	
+	      
+	    rsFinal = null;
 	  	
-	  	rsFinal = rsTravail;
 	  	
       return rsFinal;
 	}
