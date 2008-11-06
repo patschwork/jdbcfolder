@@ -13,7 +13,7 @@ public class DatabaseFunctions extends JdbcFolderAbstractResultSet {
 	 */
 	public DatabaseFunctions() {
 		super();
-		this.tableauLignes = new Function[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 	
 	

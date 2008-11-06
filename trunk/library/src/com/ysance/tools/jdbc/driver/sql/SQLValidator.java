@@ -56,13 +56,12 @@ public class SQLValidator implements SQLGrammar, ParsingUtilities {
 	 * 
 	 * @return a HashMap containing, for each expression in the SELECT clause, the alias as the key and a RequestFieldSelected as the value
 	 */
-	public HashMap getFields() {
-		//StringBuffer fields = new StringBuffer();
+	public ArrayList getFields() {
 		int finFields  = positionFrom;
 		
 		
 		ArrayList listeChamps = new ArrayList();
-		ArrayList listeAliasChamps = new ArrayList();
+		HashMap listeAliasChamps = new HashMap();
 		
 		for ( int index = positionSelect + 1; index < finFields ; index++ ) {
 			RequestFieldSelected aSelectedField = new RequestFieldSelected();
@@ -78,22 +77,33 @@ public class SQLValidator implements SQLGrammar, ParsingUtilities {
 			while (!finDeGroupe && index < finFields ) {
 				aRequestWord = (RequestWord)requete.get(index);
 				
-				aSelectedField.addWord(aRequestWord);
+				finDeGroupe = aSelectedField.addWord(aRequestWord);
 				
-				for (int indexSeparateur = 0; indexSeparateur < separateursGroupe.length; indexSeparateur++) {
-					finDeGroupe = finDeGroupe || ( aRequestWord.toString().lastIndexOf(',') == aRequestWord.toString().trim().length() - 1) ;
-				}		
-				
-				index++;				
+				if (!finDeGroupe )
+				  index++;				
 			}
 			
+			// Si le champ n'est pas vide, on l'ajoute à la liste
 			if (aSelectedField.getWordCount() > 0) {
-				listeChamps.add(aSelectedField);					
+				listeChamps.add(aSelectedField);
+				
+				String aliasOrigine = aSelectedField.getAlias();
+				
+				Integer numeroAlias = new Integer(1);
+				// On affecte ici l'alias définitif
+				if (listeAliasChamps.containsKey(aliasOrigine)) {
+					numeroAlias = (Integer)listeAliasChamps.get(aliasOrigine);
 
-				System.out.println(aSelectedField.toString());
+					aSelectedField.setAlias(aliasOrigine+"_"+numeroAlias.toString());
+					numeroAlias = new Integer(numeroAlias.intValue() + 1);
+				}
+				listeAliasChamps.put(aliasOrigine,numeroAlias);
+
+				System.out.println(aSelectedField.toString());	            
 			}
 		}
-		return null;
+				
+		return listeChamps;
 		//return new StringTokenizer(this.requete.substring(positionSelect + SQLFormatter.SELECT_WORD.length(), positionFrom), ",");	
 	}	
 	
@@ -124,11 +134,16 @@ public class SQLValidator implements SQLGrammar, ParsingUtilities {
 			for ( int index = positionWhere + 1; index < finWhere ; index++ ) {
 				RequestWord aRequestWord = (RequestWord)requete.get(index);
 				
-				if ( aRequestWord.kind == RequestWord.KIND_UNKNOWN ) {
+				/*if ( aRequestWord.kind == RequestWord.KIND_UNKNOWN ) {
 					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.SIZE_FIELD, aTableAlias+RowFile.getMethodForField(FolderResultSetMetaData.SIZE_FIELD));
 					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.FILENAME_FIELD, aTableAlias+RowFile.getMethodForField(FolderResultSetMetaData.FILENAME_FIELD));
 					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.EXTENSION_FIELD, aTableAlias+RowFile.getMethodForField(FolderResultSetMetaData.EXTENSION_FIELD));            
-				}
+				}*/
+				/*if ( aRequestWord.kind == RequestWord.KIND_UNKNOWN ) {
+					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.SIZE_FIELD, FolderResultSetMetaData.SIZE_FIELD+"()");
+					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.FILENAME_FIELD, FolderResultSetMetaData.FILENAME_FIELD+"()");
+					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.EXTENSION_FIELD, FolderResultSetMetaData.EXTENSION_FIELD+"()");            
+				}	*/			
 				//System.out.println(aRequestWord.word);
 				whereClause.append(aRequestWord.word);
 				whereClause.append(" ");

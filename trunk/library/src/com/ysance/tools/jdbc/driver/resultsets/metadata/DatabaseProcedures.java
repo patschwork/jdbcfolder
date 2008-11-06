@@ -63,7 +63,7 @@ public class DatabaseProcedures extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseProcedures() {
 		super();		
-		this.tableauLignes = new Procedure[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 
 }

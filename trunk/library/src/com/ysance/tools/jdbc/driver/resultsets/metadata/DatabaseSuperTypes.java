@@ -10,7 +10,7 @@ public class DatabaseSuperTypes extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseSuperTypes() {
 		super();
-		this.tableauLignes = new SuperType[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 
 }

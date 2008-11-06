@@ -103,6 +103,11 @@ public class JdbcFolderExceptions {
 		}
 	}
 	
-	
+	/** Erreur T002 */
+	public static class ColumnAliasAlreadyExistsException extends SQLException{
+		public ColumnAliasAlreadyExistsException(String aColumnAlias) {
+			super("T002 - Column alias "+aColumnAlias+" already axists ");		
+		}
+	}	
 	
 }

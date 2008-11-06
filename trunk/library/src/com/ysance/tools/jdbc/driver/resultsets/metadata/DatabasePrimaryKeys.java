@@ -13,7 +13,7 @@ public class DatabasePrimaryKeys extends JdbcFolderAbstractResultSet {
 	 */
 	public DatabasePrimaryKeys() {
 		super();
-		this.tableauLignes = new PrimaryKey[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 
 	

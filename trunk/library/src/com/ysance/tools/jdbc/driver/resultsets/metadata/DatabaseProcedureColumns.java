@@ -51,7 +51,7 @@ public class DatabaseProcedureColumns extends JdbcFolderAbstractResultSet {
 	 */
 	public DatabaseProcedureColumns() {
 		super();
-		this.tableauLignes = new ProcedureColumn[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 	
 

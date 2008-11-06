@@ -39,7 +39,7 @@ public class DatabaseAttributes extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseAttributes() {
 		super();
-		this.tableauLignes = new DatabaseAttribute[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 
 }

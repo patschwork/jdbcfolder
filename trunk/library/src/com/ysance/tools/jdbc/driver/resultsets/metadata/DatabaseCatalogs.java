@@ -10,7 +10,7 @@ public class DatabaseCatalogs extends JdbcFolderAbstractResultSet {
 
 	public DatabaseCatalogs() {
 		super();
-		this.tableauLignes = new Catalog[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 	
 	

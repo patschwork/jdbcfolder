@@ -2,12 +2,17 @@ package com.ysance.tools.jdbc.driver.resultsets.metadata;
 
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
+import com.ysance.tools.jdbc.driver.JdbcFolderExceptions;
 import com.ysance.tools.jdbc.driver.JdbcFolderExceptions.NoDatasetFieldFoundAtPositionException;
+import com.ysance.tools.jdbc.driver.sql.RequestFieldSelected;
+
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
 
 /**
  * @author csebille
@@ -19,84 +24,6 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 	public static final String FILENAME_FIELD  = "FILENAME";
 	public static final String SIZE_FIELD      = "SIZE";	
 	
-	public class FileFieldMetadata {
-		public String  catalogName = "";
-		public String  columnClassName = "";
-		public int     columnDisplaySize = 0;
-		public String  columnLabel = "";
-		public String  columnName = "";
-		public int     columnType = 0;
-		public String  columnTypeName = "";
-		public int     precision = 0;
-		public int     scale = 0;
-		public String  schemaName = "";
-		public String  tableName = "";
-		public boolean autoIncrement = false;
-		public boolean caseSensitive = false;
-		public boolean isCurrency = false;
-		public boolean definitelyWritable = false;
-		public int     nullable = 0;
-		public boolean isReadOnly = false;
-		public boolean isSearchable = false;
-		public boolean isSigned = false;
-		public boolean isWritable = false;
-		
-		public FileFieldMetadata(String  aCatalogName, String  aColumnClassName,
-		int     aColumnDisplaySize,		String  aColumnLabel,		String  aColumnName,		int     aColumnType,
-		String  aColumnTypeName,		int     aPrecision,		int     aScale,		String  aSchemaName,
-		String  aTableName,		boolean aAutoIncrement,		boolean aCaseSensitive,		boolean aIsCurrency,
-		boolean aDefinitelyWritable,		int     aNullable,		boolean aIsReadOnly,
-		boolean aIsSearchable,		boolean aIsSigned,		boolean aIsWritable) {
-			this.catalogName = aCatalogName;
-			this.columnClassName = aColumnClassName;
-			this.columnDisplaySize = aColumnDisplaySize;
-			this.columnLabel = aColumnLabel;
-			this.columnName = aColumnName;
-			this.columnType = aColumnType;
-			this.columnTypeName = aColumnTypeName;
-			this.precision = aPrecision;
-			this.scale = aScale;
-			this.schemaName = aSchemaName;
-			this.tableName = aTableName;
-			this.autoIncrement = aAutoIncrement;
-			this.caseSensitive = aCaseSensitive;
-			this.isCurrency = aIsCurrency;
-			this.definitelyWritable = aDefinitelyWritable;
-			this.nullable = aNullable;
-			this.isReadOnly = aIsReadOnly;
-			this.isSearchable = aIsSearchable;
-			this.isSigned = aIsSigned;
-			this.isWritable = aIsWritable;
-		}
-
-		
-		public Object clone() {
-			return new FileFieldMetadata(	this.catalogName, 
-											this.columnClassName,
-											this.columnDisplaySize,
-											this.columnLabel,
-											this.columnName,
-											this.columnType,
-											this.columnTypeName,
-											this.precision,
-											this.scale,
-											this.schemaName,
-											this.tableName,
-											this.autoIncrement,
-											this.caseSensitive,
-											this.isCurrency,
-											this.definitelyWritable,
-											this.nullable,
-											this.isReadOnly,
-											this.isSearchable,	
-											this.isSigned,	
-											this.isWritable);
-		}
-
-		public void setColumnLabel(String columnLabel) {
-			this.columnLabel = columnLabel;
-		}
-	}
 	
 	private LinkedHashMap colonnes;
 	private Hashtable positionColonne;
@@ -113,19 +40,88 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 	}	
 	
 	public FolderResultSetMetaData(String aCatalogue) {
-		//  System.out.println("FolderResultSetMetaData.FolderResultSetMetaData()");
+		this();
 		this.catalogue = aCatalogue;
 		this.schemaName = aCatalogue;
-		colonnesPossibles = new Hashtable();
-		colonnesPossibles.put(FILENAME_FIELD, new FileFieldMetadata(this.catalogue, String.class.getName(), 255, FILENAME_FIELD, FILENAME_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
-		colonnesPossibles.put(SIZE_FIELD, new FileFieldMetadata(this.catalogue, Long.class.getName(), 255, SIZE_FIELD, SIZE_FIELD, java.sql.Types.BIGINT, "Long", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
-		colonnesPossibles.put(EXTENSION_FIELD, new FileFieldMetadata(this.catalogue, String.class.getName(), 255, EXTENSION_FIELD, EXTENSION_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
-		
-		colonnes= new LinkedHashMap();
-		positionColonne = new Hashtable();
-		positionColonneInverse = new Hashtable();
+		colonnesPossibles.put(FILENAME_FIELD, new FieldMetadata(this.catalogue, String.class.getName(), 255, FILENAME_FIELD, FILENAME_FIELD, FILENAME_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
+		colonnesPossibles.put(SIZE_FIELD, new FieldMetadata(this.catalogue, Long.class.getName(), 255, SIZE_FIELD, SIZE_FIELD, SIZE_FIELD, java.sql.Types.BIGINT, "Long", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
+		colonnesPossibles.put(EXTENSION_FIELD, new FieldMetadata(this.catalogue, String.class.getName(), 255, EXTENSION_FIELD, EXTENSION_FIELD, EXTENSION_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
 	}
 
+	public FolderResultSetMetaData(ArrayList aFieldList) {
+		this();
+		
+		for (int indexChamp = 0; indexChamp < aFieldList.size(); indexChamp++) {
+			RequestFieldSelected champ = (RequestFieldSelected)aFieldList.get(indexChamp);
+			
+			String  columnLabel = champ.getAlias();
+			String  columnName = champ.getExpression();
+
+			String  catalogName = "";
+			String  columnClassName = "";
+			int     columnDisplaySize = 0;
+			int     columnType = 0;
+			String  columnTypeName = "";
+			String  expression = "";
+			int     precision = 0;
+			int     scale = 0;
+			String  schemaName = "";
+			String  tableName = "";
+			boolean autoIncrement = false;
+			boolean caseSensitive = false;
+			boolean isCurrency = false;
+			boolean definitelyWritable = false;
+			int     nullable = 0;
+			boolean isReadOnly = false;
+			boolean isSearchable = false;
+			boolean isSigned = false;
+			boolean isWritable = false;
+
+			Context cx = Context.enter();
+			Scriptable scope = cx.initStandardObjects();
+
+			/*try {		
+              Scriptable jsTypeColonne = Context.toObject(dataSetResultatMetaData, scope);
+		      scope.put("typeColonne", scope, jsArgsDataSetResultatMetaData);
+		          
+		          Object result = cx.evaluateString(scope, script.toString(), "<cmd>", 1, null);
+		                
+		          System.err.println(cx.toString(result));
+		          
+				    for (int indexFichier=0; indexFichier < indexFichiers.size(); indexFichier++) {
+					      //  System.out.println("fichier ajouté : " +fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()]);
+					      System.out.println(""+indexFichiers.get(indexFichier));
+					 }
+				    
+		      } catch (Exception ex) {
+		      	ex.printStackTrace();    
+		      } finally {
+		        Context.exit();
+		      }*/			
+			
+			colonnes.put(champ.getAlias(),new FieldMetadata(	catalogName, 
+					columnClassName,
+					columnDisplaySize,
+					columnLabel,
+					columnName,
+					expression,
+					columnType,
+					columnTypeName,
+					precision,
+					scale,
+					schemaName,
+					tableName,
+					autoIncrement,
+					caseSensitive,
+					isCurrency,
+					definitelyWritable,
+					nullable,
+					isReadOnly,
+					isSearchable,	
+					isSigned,	
+					isWritable));
+		}				
+	}
 	
 	/**
 	 * Vérifie l'existence d'une colonne suivant son nom
@@ -138,42 +134,41 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 	}
 	
 	/**
-	 * Ajoute une colonne au ResultSet, change son nom éventuellement et l'associe à une position
+	 * Ajoute une colonne au ResultSet et l'associe à une position
 	 * @param aField : nom d'une colonne
 	 * @return position de la colonne dans le ResultSet
 	 */
-	public int addColumn(String aField) {
-		//  System.out.println("FolderResultSetMetaData.addColumn() "+aField);
-		String uniqueField = this.getFinalFieldName(aField);
-		FileFieldMetadata uniqueFieldDefinition = (FileFieldMetadata)((FileFieldMetadata)colonnesPossibles.get(aField)).clone();
-		uniqueFieldDefinition.setColumnLabel(uniqueField);
+	private int addColumn(String aField) {
+		FieldMetadata uniqueFieldDefinition = (FieldMetadata)((FieldMetadata)colonnesPossibles.get(aField)).clone();
+		uniqueFieldDefinition.setColumnLabel(aField);
 			
 		Integer positionEnCours = new Integer(colonnes.size());
-		positionColonne.put(uniqueField, positionEnCours);
-		positionColonneInverse.put(positionEnCours, uniqueField);
-		colonnes.put(uniqueField, uniqueFieldDefinition);			
+		positionColonne.put(aField, positionEnCours);
+		positionColonneInverse.put(positionEnCours, aField);
+		colonnes.put(aField, uniqueFieldDefinition);		
+
+		return positionEnCours.intValue();
+	}
+
+	/**
+	 * Ajoute une colonne au ResultSet et l'associe à une position
+	 * @param aField : nom d'une colonne
+	 * @return position de la colonne dans le ResultSet
+	 */
+	int addColumn(FieldMetadata aField) throws SQLException {
+		// Vérification que le nom de la colonne n'existe pas déjà
+		if (colonnes.get(aField.columnLabel) != null) {
+			throw new JdbcFolderExceptions.ColumnAliasAlreadyExistsException(aField.columnLabel);
+		}
+		
+		Integer positionEnCours = new Integer(colonnes.size());
+		positionColonne.put(aField, positionEnCours);
+		positionColonneInverse.put(positionEnCours, aField);
+		colonnes.put(aField, aField);		
 
 		return positionEnCours.intValue();
 	}
 	
-	/**
-	 * Ajoute une colonne au ResultSet, change son nom éventuellement et l'associe à une position
-	 * @param aField : nom d'une colonne
-	 * @return position de la colonne dans le ResultSet
-	 */
-	public int addLazyStringColumn(String aField) {
-		//  System.out.println("FolderResultSetMetaData.addColumn() "+aField);
-		String uniqueField = this.getFinalFieldName(aField);
-		FileFieldMetadata uniqueFieldDefinition = new FileFieldMetadata(this.catalogue, String.class.getName(), 255, FILENAME_FIELD, FILENAME_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true);
-		uniqueFieldDefinition.setColumnLabel(uniqueField);
-			
-		Integer positionEnCours = new Integer(colonnes.size());
-		positionColonne.put(uniqueField, positionEnCours);
-		positionColonneInverse.put(positionEnCours, uniqueField);
-		colonnes.put(uniqueField, uniqueFieldDefinition);			
-
-		return positionEnCours.intValue();
-	}	
 	
 	/**
 	 * Ajoute toutes les colonnes possibles au dataset 
@@ -182,8 +177,7 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 		
 		for (Iterator cles = colonnesPossibles.keySet().iterator(); cles.hasNext();) {
 			addColumn(cles.next().toString());			
-		}
-		
+		}		
 	}
 	
 	/**
@@ -203,41 +197,23 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 	/**
 	 * Retourne les métadata d'une colonne à partir de son nom
 	 * @param aUniqueFieldName le nom de la colonne souhaitée
-	 * @return un objet FileFieldMetadata correspondant aux métadata d'une colonne
+	 * @return un objet FieldMetadata correspondant aux métadata d'une colonne
 	 */
-	public FileFieldMetadata getColumnDefinitionByUniqueName(String aUniqueFieldName ) {
+	public FieldMetadata getColumnDefinitionByUniqueName(String aUniqueFieldName ) {
 		//  System.out.println("FolderResultSetMetaData.getColumnDefinitionByUniqueName()");
-		return (FileFieldMetadata)colonnes.get(aUniqueFieldName);
+		return (FieldMetadata)colonnes.get(aUniqueFieldName);
 	}
 	
 	/**
 	 * Retourne les métadata d'une colonne à partir de sa position
 	 * @param aUniqueFieldName le nom de la colonne souhaitée
-	 * @return un objet FileFieldMetadata correspondant aux métadata d'une colonne
+	 * @return un objet FieldMetadata correspondant aux métadata d'une colonne
 	 */
-	public FileFieldMetadata getColumnDefinitionByPosition(int aPosition ) throws SQLException {
+	public FieldMetadata getColumnDefinitionByPosition(int aPosition ) throws SQLException {
 		//  System.out.println("FolderResultSetMetaData.getColumnDefinitionByPosition()");
-		return (FileFieldMetadata)colonnes.get(getColumnUniqueNameByPosition(aPosition));
+		return (FieldMetadata)colonnes.get(getColumnUniqueNameByPosition(aPosition));
 	}
 
-	/**
-	 * Calcule et retourne le nom unique du champ si celui-ci est utilisé plusieurs fois dansla requête
-	 * @param aField : nom d'une colonne 
-	 * @return renvoie le nom unique de champ, à cette position pour ce ResultSet
-	 */
-	private String getFinalFieldName(String aField) {
-		//  System.out.println("FolderResultSetMetaData.getFinalFieldName()");
-		String finalFieldName = aField;
-		if (colonnes.containsKey(aField)) {
-		  int i = 1;
-		  finalFieldName = aField + "_"+i;		  
-		  while (colonnes.containsKey(finalFieldName)) {
-			  finalFieldName = aField + "_"+ ++i ;
-		  }
-		} 
-		return finalFieldName;		
-	}
-	
 	/* (non-Javadoc)
 	 * @see java.sql.ResultSetMetaData#getCatalogName(int)
 	 */

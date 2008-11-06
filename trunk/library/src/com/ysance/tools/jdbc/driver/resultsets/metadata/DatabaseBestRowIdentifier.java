@@ -10,7 +10,7 @@ public class DatabaseBestRowIdentifier extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseBestRowIdentifier() {
 		super();
-		this.tableauLignes = new BestRowIdentifier[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 
 }

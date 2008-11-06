@@ -10,7 +10,7 @@ public class DatabaseTablePrivileges extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseTablePrivileges() {
 		super();
-		this.tableauLignes = new TablePrivilege[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 	
 }

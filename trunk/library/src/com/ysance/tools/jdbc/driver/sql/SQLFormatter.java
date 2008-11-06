@@ -62,10 +62,11 @@ public class SQLFormatter implements SQLGrammar, ParsingUtilities {
 				// On ajoute la lettre au mot
 				mot.append(c);	
 				boolean fermerChaine = false;
-				// Si on ferme la chaine ou qu'on arrive à la fin, on ajoute l'ajoute à la liste et on réinitialise le mot
-				if ( chaineProtegee == SIMPLE_APOSTROPHE || chaineProtegee == DOUBLE_APOSTROPHE ) {
+				// Si on ferme la chaine ou qu'on arrive à la fin, on l'ajoute à la liste et on réinitialise le mot
+				if ( chaineProtegee == SIMPLE_APOSTROPHE || chaineProtegee == DOUBLE_APOSTROPHE || chaineProtegee == DELIMITEUR_FONCTION) {
 					if ((c == '\'' &&  chaineProtegee == SIMPLE_APOSTROPHE) ||
 						(c == '\"' &&  chaineProtegee == DOUBLE_APOSTROPHE) || 
+						(c == '('  &&  chaineProtegee == DELIMITEUR_FONCTION) ||
 						 indexLettre == caracteresRequete.length - 1) {
 						fermerChaine = true;
 					}
@@ -94,8 +95,16 @@ public class SQLFormatter implements SQLGrammar, ParsingUtilities {
 			} else {
 			  mot.append(c);				
 			  // Si on entre dans une chaine
-			  if ((c == '\'') ||( c == '\"')) {
-				  chaineProtegee = (c == '\'') ? SIMPLE_APOSTROPHE : DOUBLE_APOSTROPHE ;
+			  if ((c == '\'') ||( c == '\"') ||( c == '.') ) {
+				  if ((c == '\'')) {
+					  chaineProtegee = SIMPLE_APOSTROPHE;
+				  } else if ( c == '\"') {
+					  chaineProtegee = DOUBLE_APOSTROPHE ;
+				  } else {
+					  chaineProtegee = DELIMITEUR_FONCTION;
+					  requeteDecoupee.add(new RequestWord(mot.toString().trim().toUpperCase(), RequestWord.KIND_UNKNOWN));
+					  mot = new StringBuffer();					  
+				  }
 			  } else {
 				  // Si on trouve un séparateur de mots ou qu'on arrive à la dernière lettre de la requête, on ferme le mot courant
 				  //if ( c == ' ' || indexLettre == caracteresRequete.length - 1) {

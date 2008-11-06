@@ -13,7 +13,7 @@ public class DatabaseExportedKeys extends JdbcFolderAbstractResultSet {
 	 */
 	public DatabaseExportedKeys() {
 		super();
-		this.tableauLignes = new ExportedKey[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 
 	

@@ -10,7 +10,7 @@ public class DatabaseSchemas extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseSchemas() {
 		super();
-		this.tableauLignes = new Schema[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 
 }

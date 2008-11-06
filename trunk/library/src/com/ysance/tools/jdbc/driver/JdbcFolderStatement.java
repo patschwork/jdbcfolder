@@ -21,6 +21,7 @@ import com.ysance.tools.jdbc.driver.resultsets.FolderResultSet;
 import com.ysance.tools.jdbc.driver.resultsets.metadata.FolderResultSetMetaData;
 import com.ysance.tools.jdbc.driver.resultsets.row.RowFile;
 import com.ysance.tools.jdbc.driver.sql.RequestCatalog;
+import com.ysance.tools.jdbc.driver.sql.RequestFieldSelected;
 import com.ysance.tools.jdbc.driver.sql.SQLValidator;
 
 import com.ysance.tools.jdbc.driver.javascript.JavaScriptFilterFormatter;
@@ -124,84 +125,110 @@ public class JdbcFolderStatement implements PreparedStatement {
 	public ResultSet executeQuery(String query) throws SQLException {
 	    //  System.out.println("JdbcFolderStatement.executeQuery()");
 		SQLValidator validator = new SQLValidator(query);
+
+        FolderResultSet dataSetResultat = new FolderResultSet();	          
+        FolderResultSetMetaData dataSetResultatMetaData = new FolderResultSetMetaData(validator.getFields());
+
 		
 		Context cx = Context.enter();
 		Scriptable scope = cx.initStandardObjects();
 
 		try {		
 			HashMap catalogues = catalogues = validator.getCatalogs();					
-			Object[] cles = catalogues.keySet().toArray();
-
+			Object[] clesCatalogues = catalogues.keySet().toArray();
+			
             String filtre = "true";
             StringBuffer script = new StringBuffer();
             String indentation = "";
+            
+	        script.append(indentation+"//********* Debut script remplissage DataSet resultat \n"); 
+	        script.append(indentation+"Row = Packages.com.ysance.tools.jdbc.driver.resultsets.row.Row;\n"); 
+	        script.append(indentation+"\n\n"); 
+
 	
 			// Permet de déterminer si tous les catalogues sont vides
 			boolean cataloguesVides = false;
+			
 			// On echange les catalogues au format String par des catalogues au format DataSet
-			for (int indexCle = 0; indexCle < cles.length; indexCle++) {						
-				String aliasCatalogue = cles[indexCle].toString();
-
-				//System.out.println("validator.getCatalogs() "+ aliasCatalogue+ "   " + catalogues.get(cles[indexCle]));
+			for (int indexCleCatalogue = 0; indexCleCatalogue < clesCatalogues.length; indexCleCatalogue++) {						
+				String aliasCatalogue = clesCatalogues[indexCleCatalogue].toString();			
 				
-				FolderResultSet catalogAsResultSet = (FolderResultSet)getCatalogAsResultSet((RequestCatalog)catalogues.get(cles[indexCle]));
+				FolderResultSet catalogAsResultSet = (FolderResultSet)getCatalogAsResultSet((RequestCatalog)catalogues.get(clesCatalogues[indexCleCatalogue]));
 				// Un catalogue est vide si on est avant sa première ligne et sur la dernière  
 				cataloguesVides = cataloguesVides || ( catalogAsResultSet.isLast() && catalogAsResultSet.isBeforeFirst());			
 				catalogues.put(aliasCatalogue, catalogAsResultSet);				
 				
 				//System.out.println("validator.getCatalogs() 2 "+ aliasCatalogue+ "   " + catalogues.get(cles[indexCle]));
 				
+				// Ajout des colonnes du datasetsource comme colonnes possibles du dataset résultat 
+				//TODO dataSetResultatMetaData.addPossiblecolumns(aliasCatalogue, catalogAsResultSet.getMetadata())
+				
+				// S'il n'y a qu'un catalogue, on crée des fonctions wrapper pour éviter d'avoir à préfixer les champs par l'alias de l'unique catalogue
+				if (clesCatalogues.length == 1) {
+					/*script.append(indentation+"function getString(aField) {\n");			        
+					script.append("  return "+aliasCatalogue+".getString(aField);\n");
+					script.append("}\n");
+					script.append(indentation+"function getLong(aField) {\n");			        
+					script.append("  return "+aliasCatalogue+".getLong(aField);\n");
+					script.append("}\n");*/
+					/*script.append(indentation+"function EXTENSION() {\n");			        
+					script.append("  return "+aliasCatalogue+".getString('EXTENSION');\n");
+					script.append("}\n");*/
+				}
+				
+				
 				// Ajout du dataset au scope javascript
 		        Scriptable jsArgs = Context.toObject(catalogAsResultSet, scope);
-		        scope.put(cles[indexCle].toString(), scope, jsArgs);
-		        
+		        scope.put(clesCatalogues[indexCleCatalogue].toString(), scope, jsArgs);
 		        
 		        script.append(indentation+aliasCatalogue+".first();\n");
 		        script.append(indentation+"while ("+aliasCatalogue+".next()) { \n");
-		        indentation = indentation + "  ";	        
-			}					
+		        indentation = indentation + "  ";
+		        if (clesCatalogues.length == 1) {
+					/*script.append(indentation+"function getString(aField) {\n");			        
+					script.append("  return "+aliasCatalogue+".getString(aField);\n");
+					script.append("}\n");
+					script.append(indentation+"function getLong(aField) {\n");			        
+					script.append("  return "+aliasCatalogue+".getLong(aField);\n");
+					script.append("}\n");*/
+					for (int indexColonne = 1; indexColonne <= catalogAsResultSet.getMetaData().getColumnCount(); indexColonne++ ) {
+						script.append(indentation+"var "+catalogAsResultSet.getMetaData().getColumnLabel(indexColonne)+" = "+aliasCatalogue+".get"+catalogAsResultSet.getMetaData().getColumnTypeName(indexColonne)+"('"+catalogAsResultSet.getMetaData().getColumnLabel(indexColonne)+"');\n");
+					}
+					
+				}		        	        
+			}			
 			
-			//FolderResultSet rsTravail = new FolderResultSet(); 
-			//rsTravail.populateData(validator);
-		    if (cles.length == 1) {
-		    	filtre = validator.getWhereClause(cles[0].toString());	
-		    } else {
-		    	filtre = validator.getWhereClause();	
-		    }
+			
+			// Application du WHERE
+			filtre = validator.getWhereClause();	
 		      
 	    	filtre = JavaScriptFilterFormatter.format(filtre);
-    
-	    // S'il y a une clause where à traiter, c'est fait ici
-	    //if (fichiers.length > 0 && clauseWhere.trim().length() > 0 ) {
-	      //Context cx = Context.enter();
-	
-	          	
-	          //String ligneFichier = "DATASET_0.";
-	                                
-
-	          /*if (clauseWhere.trim().length() > 0 ) {
-		          filtre = clauseWhere;
-		          filtre = filtre.replaceAll(FolderResultSetMetaData.SIZE_FIELD, ligneFichier+RowFile.getMethodForField(FolderResultSetMetaData.SIZE_FIELD));
-		          filtre = filtre.replaceAll(FolderResultSetMetaData.FILENAME_FIELD, ligneFichier+RowFile.getMethodForField(FolderResultSetMetaData.FILENAME_FIELD));
-		          filtre = filtre.replaceAll(FolderResultSetMetaData.EXTENSION_FIELD, ligneFichier+RowFile.getMethodForField(FolderResultSetMetaData.EXTENSION_FIELD));            
-	          }*/
-	          
-	      	
+   
 			    
 	          script.append(indentation+"if ( " +filtre + " ) {\n");
+	          //script.append(indentation+"if ( EXTENSION.trim()  ==  'pdf'   ||  EXTENSION  ==  'xml'   ) {\n");
 	          script.append(indentation+indentation+"mapIndexesTables = new java.util.HashMap();\n");
-	          for (int indexCle = 0; indexCle < cles.length; indexCle++) {						
-		         //script.append(indentation+indentation+"indexFichiers.add(new java.lang.Integer("+ligneFichier+"getRow()))\n");
-				 script.append(indentation+indentation+"mapIndexesTables.put('"+cles[indexCle].toString()+"' ,new java.lang.Integer("+cles[indexCle].toString()+".getRow()));\n");
+	          for (int indexTables = 0; indexTables < clesCatalogues.length; indexTables++) {						
+	    	      // Pour le fun, le faire avec les metadata plutôt, désactiver le précédent getFields pour que ça marche
+	    	      java.util.ArrayList aFieldList = validator.getFields();
+	        	  script.append(indentation+indentation+"row = new Row(dataSetResultatMetaData)\n");
+	    		  for (int indexChamp = 0; indexChamp < aFieldList.size(); indexChamp++) {
+	    				RequestFieldSelected champ = (RequestFieldSelected)aFieldList.get(indexChamp);
+	  	        	    script.append(indentation+indentation+"row.setData('"+champ.getAlias()+"', "+champ.getExpression()+");\n");
+	  	    	        //script.append(indentation+indentation+"var "+champ.getAlias()+" = "+champ.getExpression()+";\n");
+	    		  }			    	      
+	    	      script.append(indentation+indentation+"dataSetResultat.addRow(row);\n");
+	        	  script.append(indentation+indentation+"mapIndexesTables.put('"+clesCatalogues[indexTables].toString()+"' ,new java.lang.Integer("+clesCatalogues[indexTables].toString()+".getRow()));\n");
 	          }
  	          script.append(indentation+indentation+"indexFichiers.add(mapIndexesTables);\n");
 	          script.append(indentation+"}\n");
 	          
-
 	          // Fermeture des boucles sur les datasets source
-		      char[] tableauAccoladesFermantes = new char[cles.length];
+		      char[] tableauAccoladesFermantes = new char[clesCatalogues.length];
 		      java.util.Arrays.fill(tableauAccoladesFermantes, '}');
-		      script.append(new String(tableauAccoladesFermantes));		        
+		      script.append(new String(tableauAccoladesFermantes));
+		      indentation = "";
+	          script.append(indentation+"\n//********* Fin script remplissage DataSet resultat \n"); 
 	          
 		      System.out.println(script.toString());        
 	                    
@@ -211,20 +238,14 @@ public class JdbcFolderStatement implements PreparedStatement {
 	          scope.put("indexFichiers", scope, jsArgsindexFichiers);           
 
 
-	          FolderResultSet dataSetResultat = new FolderResultSet();	          
 	          Scriptable jsArgsDataSetResultat = Context.toObject(dataSetResultat, scope);
 	          scope.put("dataSetResultat", scope, jsArgsDataSetResultat);
 	          
-	          FolderResultSetMetaData dataSetResultatMetaData = new FolderResultSetMetaData();	          
 	          Scriptable jsArgsDataSetResultatMetaData = Context.toObject(dataSetResultatMetaData, scope);
 	          scope.put("dataSetResultatMetaData", scope, jsArgsDataSetResultatMetaData);
 	          
-	          //dataSetResultatMetaData.addLazyStringColumn(aField)
-	          
-	          //String s = requete;
-	
 	          Object result = cx.evaluateString(scope, script.toString(), "<cmd>", 1, null);
-	                   
+	                
 	          System.err.println(cx.toString(result));
 	          
 			    for (int indexFichier=0; indexFichier < indexFichiers.size(); indexFichier++) {
@@ -247,40 +268,13 @@ public class JdbcFolderStatement implements PreparedStatement {
 
 		    
 	    /*
-	    RowFile[] fichiersFiltres = new RowFile[indexFichiers.size()]; 
-	    for (int indexFichier=0; indexFichier < indexFichiers.size(); indexFichier++) {
-	      //  System.out.println("fichier ajouté : " +fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()]);
-	      fichiersFiltres[indexFichier] = fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()];
-	    }
-
-	    
-		this.tableauLignes  = fichiersFiltres;  
-		
 	    // Application du GROUP BY
 
  	
 	  	// Renvoi des colonnes
 	  	rsFinal = rsTravail;*/
 
-	      validator.getFields();
 	      
-			/*StringTokenizer champs = aValidator.getFields();
-
-			// Détermination des champs à retourner
-			while (champs.hasMoreTokens()) {
-				String champ = champs.nextToken().trim();
-				FolderResultSetMetaData metadata = (FolderResultSetMetaData)this.getMetaData(); 
-				if (SQLGrammar.JOKER_WORD.equals(champ.trim())) {
-					metadata.addAllPossibleColumns();
-				} else {
-					if (!metadata.recognizeField(champ)){
-						throw new JdbcFolderExceptions.FieldNotFoundException(champ);				
-					} else {
-						metadata.addColumn(champ);
-					}
-				}
-			}  */
-
 	    // Application du ORDER BY	
 	      
 	    rsFinal = null;

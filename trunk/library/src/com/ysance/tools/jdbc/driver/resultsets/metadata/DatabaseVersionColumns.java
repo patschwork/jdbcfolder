@@ -10,7 +10,7 @@ public class DatabaseVersionColumns extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseVersionColumns() {
 		super();
-		this.tableauLignes = new VersionColumn[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 	
 }

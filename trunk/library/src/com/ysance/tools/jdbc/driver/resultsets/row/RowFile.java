@@ -12,11 +12,12 @@ public class RowFile extends Row {
 		super();
 		fichierMappe = aFichierMappe;
 		this.fieldsList.add(FolderResultSetMetaData.FILENAME_FIELD);
-		this.fields.put(FolderResultSetMetaData.FILENAME_FIELD, this.fichierMappe.getName());
 		this.fieldsList.add(FolderResultSetMetaData.SIZE_FIELD);
-		this.fields.put(FolderResultSetMetaData.SIZE_FIELD, new Long(this.fichierMappe.length()));
 		this.fieldsList.add(FolderResultSetMetaData.EXTENSION_FIELD);
-		this.fields.put(FolderResultSetMetaData.EXTENSION_FIELD, getExtension());
+
+		this.fieldsData.put(FolderResultSetMetaData.FILENAME_FIELD, this.fichierMappe.getName());
+		this.fieldsData.put(FolderResultSetMetaData.SIZE_FIELD, new Long(this.fichierMappe.length()));
+		this.fieldsData.put(FolderResultSetMetaData.EXTENSION_FIELD, getExtension());
 	}
 	
 	/*public String getFileName() {

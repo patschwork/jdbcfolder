@@ -75,7 +75,7 @@ public class TestJdbcFolder {
 		  Connection con = DriverManager.getConnection(url);
 		  DatabaseMetaData conMetaData = con.getMetaData(); 
 		  //String query = JdbcFolderStatement.DUMMY_REQUEST;
-		  String query = " select   'filEName'as toto,  size,extension, filename, size,extension, filename, size,extension from /temp where extension = 'pdf' or extension = 'xml' ";
+		  String query = " select   'filEName'as toto ,  size,extension ,filename, size,extension, filename, size,extension from /temp where extension.trim() = 'pdf' or extension = 'xml' ";
 		  PreparedStatement stmt = con.prepareStatement(query);
 		  stmt.setFetchSize(10);
 		  ResultSet results = stmt.executeQuery();

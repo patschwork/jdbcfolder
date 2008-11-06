@@ -13,7 +13,7 @@ public class DatabaseIndexInfo extends JdbcFolderAbstractResultSet {
 	 */
 	public DatabaseIndexInfo() {
 		super();
-		this.tableauLignes = new IndexInfo[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 	
 	
