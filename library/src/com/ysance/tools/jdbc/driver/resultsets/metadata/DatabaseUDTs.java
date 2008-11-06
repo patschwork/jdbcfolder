@@ -10,7 +10,7 @@ public class DatabaseUDTs extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseUDTs() {
 		super();
-		this.tableauLignes = new UDT[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 
 }

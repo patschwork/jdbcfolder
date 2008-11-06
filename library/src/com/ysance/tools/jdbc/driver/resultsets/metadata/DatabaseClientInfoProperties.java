@@ -10,7 +10,7 @@ public class DatabaseClientInfoProperties extends JdbcFolderAbstractResultSet {
 
 	public DatabaseClientInfoProperties() {
 		super();
-		this.tableauLignes = new ClientInfoProperty[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 	
 	

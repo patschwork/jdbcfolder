@@ -13,7 +13,7 @@ public class DatabaseCrossReference extends JdbcFolderAbstractResultSet {
 	 */
 	public DatabaseCrossReference() {
 		super();
-		this.tableauLignes = new CrossReference[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 	
 	

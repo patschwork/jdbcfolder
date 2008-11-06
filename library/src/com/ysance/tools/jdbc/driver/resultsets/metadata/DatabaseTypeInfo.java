@@ -10,7 +10,7 @@ public class DatabaseTypeInfo extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseTypeInfo() {
 		super();
-		this.tableauLignes = new TypeInfo[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 
 }

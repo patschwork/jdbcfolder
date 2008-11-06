@@ -19,7 +19,7 @@ public class DatabaseSuperTables extends JdbcFolderAbstractResultSet {
 
 	public DatabaseSuperTables() {
 		super();
-		this.tableauLignes = new DatabaseSuperTable[0];	
+		this.tableauLignes = new java.util.ArrayList();	
 	}
 	
 	

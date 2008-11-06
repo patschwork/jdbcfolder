@@ -5,19 +5,13 @@ import java.io.File;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.StringTokenizer;
-
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
 
 import com.ysance.tools.jdbc.driver.JdbcFolderExceptions;
 import com.ysance.tools.jdbc.driver.JdbcFolderExceptions.DatasetFieldNotFoundException;
-import com.ysance.tools.jdbc.driver.JdbcFolderExceptions.NoClauseFoundException;
+import com.ysance.tools.jdbc.driver.resultsets.metadata.FieldMetadata;
 import com.ysance.tools.jdbc.driver.resultsets.metadata.FolderResultSetMetaData;
+import com.ysance.tools.jdbc.driver.resultsets.row.Row;
 import com.ysance.tools.jdbc.driver.resultsets.row.RowFile;
-import com.ysance.tools.jdbc.driver.javascript.JavaScriptFilterFormatter;
-import com.ysance.tools.jdbc.driver.sql.SQLValidator;
-import com.ysance.tools.jdbc.driver.sql.SQLGrammar;
 
 
 public class FolderResultSet extends JdbcFolderAbstractResultSet {
@@ -80,12 +74,12 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	public Object getObject(String aChamp) throws SQLException {
 		aChamp = aChamp.toUpperCase();
 		//  System.out.println("FolderResultSet.getObject(String aChamp)");
-		FolderResultSetMetaData.FileFieldMetadata definitionColonne = metaData.getColumnDefinitionByUniqueName(aChamp.toUpperCase());
+		FieldMetadata definitionColonne = metaData.getColumnDefinitionByUniqueName(aChamp.toUpperCase());
 		if (definitionColonne == null) {
 			throw new DatasetFieldNotFoundException(aChamp);			
 		}
 				
-	  return ((RowFile)(tableauLignes[positionCurseur])).getData(definitionColonne.columnName);	
+	  return ((Row)(tableauLignes.get(positionCurseur))).getData(definitionColonne.columnName);	
 	}
 	
 	/**
@@ -94,11 +88,20 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	 * @param aPositionLigne : la position de la ligne voulue dans le dataset
 	 * @return
 	 */
-	protected RowFile getRowFile(int aPositionLigne) {
-		return (RowFile)tableauLignes[aPositionLigne + 1];
+	protected Row getRow(int aPositionLigne) {
+		return (Row)tableauLignes.get(aPositionLigne + 1);
 	}
 	
-//	public void populateData(SQLValidator aValidator) throws SQLException {
+	/**
+	 * renvoie l'objet ligne correspondant à la position demandée.
+	 * Pour rester cohérent avec les manipulations de lignes des résultset, la première ligne se trouve à la position 1
+	 * @param aPositionLigne : la position de la ligne voulue dans le dataset
+	 * @return
+	 */
+	protected void setRow(Row aNewRow) {
+		tableauLignes.add(aNewRow);
+	}	
+	
 	public void populateData() throws SQLException {
 
 		//String cheminCatalogue = aValidator.getCatalogPath();
@@ -113,15 +116,17 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	    // Récupération des fichiers du répertoire "table"
 		java.io.File[] liste = catalogue.listFiles();            
 	    
-	    RowFile[] fichiers = new RowFile[liste.length]; 
+	    ArrayList fichiers = new ArrayList(liste.length); 
 	    for (int indexListeFile =0; indexListeFile < liste.length; indexListeFile++) {
-	      fichiers[indexListeFile] = new RowFile(liste[indexListeFile]);
+	      fichiers.add(new RowFile(liste[indexListeFile]));	    
 	    }
 	    
 		//FolderResultSetMetaData metadata = (FolderResultSetMetaData)this.getMetaData(); 
 		//metadata.addAllPossibleColumns();	    
 	    
 	    this.tableauLignes  = fichiers;
+	    
+	    //((FolderResultSetMetaData)this.getMetaData()).addAllPossibleColumns();
 		
 		/*StringTokenizer champs = aValidator.getFields();
 

@@ -14,7 +14,7 @@ public class DatabaseColumns extends JdbcFolderAbstractResultSet {
 
 	public DatabaseColumns() {
 		super();
-		this.tableauLignes = new Column[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 	
 	

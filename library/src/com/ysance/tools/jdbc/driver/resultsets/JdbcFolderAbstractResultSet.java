@@ -21,6 +21,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
+import java.util.ArrayList;
+import com.ysance.tools.jdbc.driver.resultsets.row.*;
 
 public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 	
@@ -33,19 +35,19 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 	 */
 	protected int positionCurseur = POSITION_BEFORE_FIRST_ROW;
 	 
-	protected java.lang.Object[] tableauLignes;
+	protected ArrayList tableauLignes;
 
 	public boolean absolute(int aPosition) throws SQLException {
 		// Pour être raccord avec les indices de tableau, on décrémente la position
 		aPosition--;
-		boolean inTheResultSetSet = (aPosition > POSITION_BEFORE_FIRST_ROW && aPosition < tableauLignes.length );
+		boolean inTheResultSetSet = (aPosition > POSITION_BEFORE_FIRST_ROW && aPosition < tableauLignes.size() );
 		if (inTheResultSetSet) {
 			this.positionCurseur = aPosition;
 		} else {
 			if (aPosition <= POSITION_BEFORE_FIRST_ROW) {
 				this.positionCurseur = POSITION_BEFORE_FIRST_ROW;
 			} else {
-				this.positionCurseur = tableauLignes.length;
+				this.positionCurseur = tableauLignes.size();
 			}
 		}
 		return inTheResultSetSet;
@@ -88,7 +90,7 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 
 	public boolean first() throws SQLException {
 		this.absolute(1);
-		return this.tableauLignes.length > 0;
+		return this.tableauLignes.size() > 0;
 	}
 
 	public Array getArray(int arg0) throws SQLException {
@@ -488,7 +490,7 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 
 	public boolean isAfterLast() throws SQLException {
 		//  System.out.println("JdbcFolderAbstractResultSet.isAfterLast()");
-		return positionCurseur > (tableauLignes.length - 1);
+		return positionCurseur > (tableauLignes.size() - 1);
 	}
 
 	public boolean isBeforeFirst() throws SQLException {
@@ -508,7 +510,7 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 
 	public boolean isLast() throws SQLException {
 		//  System.out.println("JdbcFolderAbstractResultSet.isLast()");
-		return positionCurseur == (tableauLignes.length - 1);
+		return positionCurseur == (tableauLignes.size() - 1);
 	}
 
 	/**
@@ -517,7 +519,7 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 	public boolean last() throws SQLException {
 		//  System.out.println("JdbcFolderAbstractResultSet.last()");
 		this.absolute(-1);
-		return this.tableauLignes.length > 0;
+		return this.tableauLignes.size() > 0;
 	}
 
 	public void moveToCurrentRow() throws SQLException {
@@ -533,7 +535,7 @@ public abstract class JdbcFolderAbstractResultSet implements ResultSet {
 	public boolean next() throws SQLException {
 		////  System.out.println("JdbcFolderResultSet.next() positionCuseur avant inc = "+positionCurseur+" longueur dataset  = "+this.listeFichiers.length);
 		positionCurseur++;
-		return ( this.tableauLignes.length - 1 ) >= positionCurseur;
+		return ( this.tableauLignes.size() - 1 ) >= positionCurseur;
 	}
 
 	public boolean previous() throws SQLException {

@@ -10,6 +10,6 @@ public class DatabaseTableTypes extends JdbcFolderAbstractResultSet {
 	
 	public DatabaseTableTypes() {
 		super();
-		this.tableauLignes = new TableType[0];
+		this.tableauLignes = new java.util.ArrayList();
 	}
 }
