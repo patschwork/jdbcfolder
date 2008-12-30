@@ -48,7 +48,7 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 		colonnesPossibles.put(EXTENSION_FIELD, new FieldMetadata(this.catalogue, String.class.getName(), 255, EXTENSION_FIELD, EXTENSION_FIELD, EXTENSION_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
 	}
 
-	public FolderResultSetMetaData(ArrayList aFieldList) {
+	public FolderResultSetMetaData(ArrayList aFieldList) throws SQLException {
 		this();
 		
 		for (int indexChamp = 0; indexChamp < aFieldList.size(); indexChamp++) {
@@ -62,7 +62,7 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 			int     columnDisplaySize = 0;
 			int     columnType = 0;
 			String  columnTypeName = "";
-			String  expression = "";
+			String  expression = champ.getExpression();
 			int     precision = 0;
 			int     scale = 0;
 			String  schemaName = "";
@@ -77,10 +77,10 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 			boolean isSigned = false;
 			boolean isWritable = false;
 
-			Context cx = Context.enter();
+			/*Context cx = Context.enter();
 			Scriptable scope = cx.initStandardObjects();
 
-			/*try {		
+			try {		
               Scriptable jsTypeColonne = Context.toObject(dataSetResultatMetaData, scope);
 		      scope.put("typeColonne", scope, jsArgsDataSetResultatMetaData);
 		          
@@ -97,9 +97,9 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 		      	ex.printStackTrace();    
 		      } finally {
 		        Context.exit();
-		      }*/			
+		      }			*/
 			
-			colonnes.put(champ.getAlias(),new FieldMetadata(	catalogName, 
+			addColumn(new FieldMetadata(	catalogName, 
 					columnClassName,
 					columnDisplaySize,
 					columnLabel,
@@ -135,19 +135,21 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 	
 	/**
 	 * Ajoute une colonne au ResultSet et l'associe à une position
-	 * @param aField : nom d'une colonne
+	 * @param aField : Label d'une colonne
 	 * @return position de la colonne dans le ResultSet
 	 */
-	private int addColumn(String aField) {
+	private int addColumn(String aField)  throws SQLException  {
 		FieldMetadata uniqueFieldDefinition = (FieldMetadata)((FieldMetadata)colonnesPossibles.get(aField)).clone();
 		uniqueFieldDefinition.setColumnLabel(aField);
-			
-		Integer positionEnCours = new Integer(colonnes.size());
+		
+		return addColumn(uniqueFieldDefinition);
+		
+		/*Integer positionEnCours = new Integer(colonnes.size());
 		positionColonne.put(aField, positionEnCours);
 		positionColonneInverse.put(positionEnCours, aField);
 		colonnes.put(aField, uniqueFieldDefinition);		
 
-		return positionEnCours.intValue();
+		return positionEnCours.intValue();*/
 	}
 
 	/**
@@ -155,16 +157,16 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 	 * @param aField : nom d'une colonne
 	 * @return position de la colonne dans le ResultSet
 	 */
-	int addColumn(FieldMetadata aField) throws SQLException {
+	int addColumn(FieldMetadata aFieldMetadata) throws SQLException {
 		// Vérification que le nom de la colonne n'existe pas déjà
-		if (colonnes.get(aField.columnLabel) != null) {
-			throw new JdbcFolderExceptions.ColumnAliasAlreadyExistsException(aField.columnLabel);
+		if (colonnes.get(aFieldMetadata.columnLabel) != null) {
+			throw new JdbcFolderExceptions.ColumnAliasAlreadyExistsException(aFieldMetadata.columnLabel);
 		}
 		
 		Integer positionEnCours = new Integer(colonnes.size());
-		positionColonne.put(aField, positionEnCours);
-		positionColonneInverse.put(positionEnCours, aField);
-		colonnes.put(aField, aField);		
+		positionColonne.put(aFieldMetadata.columnLabel, positionEnCours);
+		positionColonneInverse.put(positionEnCours, aFieldMetadata.columnLabel);
+		colonnes.put(aFieldMetadata.columnLabel, aFieldMetadata);		
 
 		return positionEnCours.intValue();
 	}
@@ -173,7 +175,7 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 	/**
 	 * Ajoute toutes les colonnes possibles au dataset 
 	 */
-	public void addAllPossibleColumns() {
+	public void addAllPossibleColumns() throws SQLException {
 		
 		for (Iterator cles = colonnesPossibles.keySet().iterator(); cles.hasNext();) {
 			addColumn(cles.next().toString());			

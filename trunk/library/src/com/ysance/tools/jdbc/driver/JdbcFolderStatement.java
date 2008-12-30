@@ -17,19 +17,16 @@ import java.sql.Types;
 import java.util.Calendar;
 import java.util.HashMap;
 
-import com.ysance.tools.jdbc.driver.resultsets.FolderResultSet;
-import com.ysance.tools.jdbc.driver.resultsets.metadata.FolderResultSetMetaData;
-import com.ysance.tools.jdbc.driver.resultsets.row.RowFile;
-import com.ysance.tools.jdbc.driver.sql.RequestCatalog;
-import com.ysance.tools.jdbc.driver.sql.RequestFieldSelected;
-import com.ysance.tools.jdbc.driver.sql.SQLValidator;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
 
 import com.ysance.tools.jdbc.driver.javascript.JavaScriptFilterFormatter;
 import com.ysance.tools.jdbc.driver.preparedstatement.metadata.JdbcFolderStatementParameterMetaData;
-
-
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
+import com.ysance.tools.jdbc.driver.resultsets.FolderResultSet;
+import com.ysance.tools.jdbc.driver.resultsets.metadata.FieldMetadata;
+import com.ysance.tools.jdbc.driver.resultsets.metadata.FolderResultSetMetaData;
+import com.ysance.tools.jdbc.driver.sql.RequestCatalog;
+import com.ysance.tools.jdbc.driver.sql.SQLValidator;
 
 public class JdbcFolderStatement implements PreparedStatement {
 	
@@ -126,8 +123,8 @@ public class JdbcFolderStatement implements PreparedStatement {
 	    //  System.out.println("JdbcFolderStatement.executeQuery()");
 		SQLValidator validator = new SQLValidator(query);
 
-        FolderResultSet dataSetResultat = new FolderResultSet();	          
         FolderResultSetMetaData dataSetResultatMetaData = new FolderResultSetMetaData(validator.getFields());
+        FolderResultSet dataSetResultat = new FolderResultSet(dataSetResultatMetaData);	          
 
 		
 		Context cx = Context.enter();
@@ -207,20 +204,21 @@ public class JdbcFolderStatement implements PreparedStatement {
 			    
 	          script.append(indentation+"if ( " +filtre + " ) {\n");
 	          //script.append(indentation+"if ( EXTENSION.trim()  ==  'pdf'   ||  EXTENSION  ==  'xml'   ) {\n");
-	          script.append(indentation+indentation+"mapIndexesTables = new java.util.HashMap();\n");
+	          //script.append(indentation+indentation+"mapIndexesTables = new java.util.HashMap();\n");
 	          for (int indexTables = 0; indexTables < clesCatalogues.length; indexTables++) {						
-	    	      // Pour le fun, le faire avec les metadata plutôt, désactiver le précédent getFields pour que ça marche
-	    	      java.util.ArrayList aFieldList = validator.getFields();
 	        	  script.append(indentation+indentation+"row = new Row(dataSetResultatMetaData)\n");
-	    		  for (int indexChamp = 0; indexChamp < aFieldList.size(); indexChamp++) {
-	    				RequestFieldSelected champ = (RequestFieldSelected)aFieldList.get(indexChamp);
-	  	        	    script.append(indentation+indentation+"row.setData('"+champ.getAlias()+"', "+champ.getExpression()+");\n");
+	    	      // Pour le fun, le faire avec les metadata plutôt, désactiver le précédent getFields pour que ça marche
+//	    	      java.util.ArrayList aFieldList = validator.getFields();
+//	    		  for (int indexChamp = 0; indexChamp < aFieldList.size(); indexChamp++) {
+	    		  for (int indexChamp = 0; indexChamp < dataSetResultatMetaData.getColumnCount(); indexChamp++) {
+	    			    FieldMetadata champ = dataSetResultatMetaData.getColumnDefinitionByPosition(indexChamp);
+	  	        	    script.append(indentation+indentation+"row.setData('"+champ.columnLabel+"', "+champ.expression+");\n");
 	  	    	        //script.append(indentation+indentation+"var "+champ.getAlias()+" = "+champ.getExpression()+";\n");
 	    		  }			    	      
 	    	      script.append(indentation+indentation+"dataSetResultat.addRow(row);\n");
-	        	  script.append(indentation+indentation+"mapIndexesTables.put('"+clesCatalogues[indexTables].toString()+"' ,new java.lang.Integer("+clesCatalogues[indexTables].toString()+".getRow()));\n");
+	        	  //script.append(indentation+indentation+"mapIndexesTables.put('"+clesCatalogues[indexTables].toString()+"' ,new java.lang.Integer("+clesCatalogues[indexTables].toString()+".getRow()));\n");
 	          }
- 	          script.append(indentation+indentation+"indexFichiers.add(mapIndexesTables);\n");
+ 	          //script.append(indentation+indentation+"indexFichiers.add(mapIndexesTables);\n");
 	          script.append(indentation+"}\n");
 	          
 	          // Fermeture des boucles sur les datasets source
@@ -248,10 +246,11 @@ public class JdbcFolderStatement implements PreparedStatement {
 	                
 	          System.err.println(cx.toString(result));
 	          
-			    for (int indexFichier=0; indexFichier < indexFichiers.size(); indexFichier++) {
+			  /*  for (int indexFichier=0; indexFichier < indexFichiers.size(); indexFichier++) {
 				      //  System.out.println("fichier ajouté : " +fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()]);
 				      System.out.println(""+indexFichiers.get(indexFichier));
 				 }
+			    */
 			    
 	      } catch (Exception ex) {
 	      	ex.printStackTrace();    
@@ -277,7 +276,7 @@ public class JdbcFolderStatement implements PreparedStatement {
 	      
 	    // Application du ORDER BY	
 	      
-	    rsFinal = null;
+	    rsFinal = dataSetResultat;
 	  	
 	  	
       return rsFinal;
