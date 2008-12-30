@@ -19,7 +19,7 @@ public class Row {
 
 	public Row(java.sql.ResultSetMetaData aResultSetMetaData) throws SQLException {
 		this();
-		for (int indexChamps = 0; indexChamps < aResultSetMetaData.getColumnCount(); indexChamps++) {
+		for (int indexChamps = 1; indexChamps <= aResultSetMetaData.getColumnCount(); indexChamps++) {
 			fieldsList.add(aResultSetMetaData.getColumnLabel(indexChamps));
 		}
 		

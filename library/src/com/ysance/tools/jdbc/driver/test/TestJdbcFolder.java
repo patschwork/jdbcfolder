@@ -75,20 +75,21 @@ public class TestJdbcFolder {
 		  Connection con = DriverManager.getConnection(url);
 		  DatabaseMetaData conMetaData = con.getMetaData(); 
 		  //String query = JdbcFolderStatement.DUMMY_REQUEST;
-		  String query = " select   'filEName'as toto ,  size,extension ,filename, size,extension, filename, size,extension from /temp where extension.trim() = 'pdf' or extension = 'xml' ";
+		  String query = " select   'filEName'as toto ,  size,extension ,filename, size,extension, filename, size,extension from /temp where extension = 'pdf' or extension = 'xml' ";
 		  PreparedStatement stmt = con.prepareStatement(query);
 		  stmt.setFetchSize(10);
 		  ResultSet results = stmt.executeQuery();
 		  //results = stmt.executeQuery(query);	  
+		  System.out.println(" ****************************  récup valeurs resultset ");		  
 		  while( results.next() ) { // Point result set to next row
 		    System.out.println("results.getString(filename) "+results.getString("filename"));
 		    //System.out.println("results.getString(1) "+results.getString(1));
-		    System.out.println("results.getLong(size) "+results.getLong("size"));
+		    //System.out.println("results.getLong(size) "+results.getLong("size"));
 		    System.out.println("results.getString(extension) "+results.getString("extension"));
-		    System.out.println("results.getString(filename_2) "+results.getString("filename_2"));
+		    System.out.println("results.getString(filename_1) "+results.getString("filename_1"));
 		    //System.out.println("results.getString(1) "+results.getString(1));
-		    System.out.println("results.getLong(size_2) "+results.getLong("size_2"));
-		    System.out.println("results.getString(extension_2) "+results.getString("extension_2"));
+		    /*System.out.println("results.getLong(size_2) "+results.getLong("size_2"));
+		    System.out.println("results.getString(extension_2) "+results.getString("extension_2"));*/
 		    System.out.println(" ");
 		  }	  
 		} catch(Exception e) {

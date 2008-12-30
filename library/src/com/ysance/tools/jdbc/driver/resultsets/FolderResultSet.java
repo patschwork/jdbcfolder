@@ -22,9 +22,17 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	ArrayList listeFiltres = new ArrayList();
 	
 	public FolderResultSet() {
+		this.tableauLignes = new ArrayList();
+	}
+
+	public FolderResultSet(FolderResultSetMetaData aMetaData) {
+		this();
+		this.metaData = aMetaData;
+	
 	}
 	
 	public FolderResultSet(String aCatalog) throws SQLException {
+		this();	
 		// Vérification existence répertoire		
 		this.catalogue = new File(aCatalog);
 		if (!this.catalogue.exists()) throw new JdbcFolderExceptions.TableDoesntExistException(this.catalogue.getAbsolutePath()); 
@@ -62,8 +70,10 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	}
 
 	public String getString(String aChamp) throws SQLException {
-		//  System.out.println("FolderResultSet.getString(String aChamp)");		
-		return getObject(aChamp).toString();
+		 System.out.println("FolderResultSet.getString(String aChamp)"+aChamp);	
+		 String result = getObject(aChamp).toString() ;
+		 System.out.println("FolderResultSet.getString(String aChamp) result : "+result);			 
+		return result;
 	}
 	
 	public Object getObject(int aPosition) throws SQLException {
@@ -73,13 +83,13 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 
 	public Object getObject(String aChamp) throws SQLException {
 		aChamp = aChamp.toUpperCase();
-		//  System.out.println("FolderResultSet.getObject(String aChamp)");
+		  System.out.println("FolderResultSet.getObject(String aChamp)"+aChamp);
 		FieldMetadata definitionColonne = metaData.getColumnDefinitionByUniqueName(aChamp.toUpperCase());
 		if (definitionColonne == null) {
 			throw new DatasetFieldNotFoundException(aChamp);			
 		}
 				
-	  return ((Row)(tableauLignes.get(positionCurseur))).getData(definitionColonne.columnName);	
+	  return ((Row)(tableauLignes.get(positionCurseur))).getData(definitionColonne.columnLabel);	
 	}
 	
 	/**
@@ -98,7 +108,7 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 	 * @param aPositionLigne : la position de la ligne voulue dans le dataset
 	 * @return
 	 */
-	protected void setRow(Row aNewRow) {
+	public void addRow(Row aNewRow) {
 		tableauLignes.add(aNewRow);
 	}	
 	
