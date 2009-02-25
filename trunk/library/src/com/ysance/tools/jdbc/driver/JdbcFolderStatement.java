@@ -40,6 +40,8 @@ public class JdbcFolderStatement implements PreparedStatement {
 	
 	//public static final String DUMMY_REQUEST = "SELECT * FROM /temp ";
 	public static final String DUMMY_REQUEST = "SELECT FILeNAME, FileNamE , FileName FROM /temp where size < 10000";
+
+	public static final String FILTER_DEFAULT_VALUE = "true";
 	
 	public JdbcFolderStatement() {
 		
@@ -134,7 +136,7 @@ public class JdbcFolderStatement implements PreparedStatement {
 			HashMap catalogues = catalogues = validator.getCatalogs();					
 			Object[] clesCatalogues = catalogues.keySet().toArray();
 			
-            String filtre = "true";
+            String filtre = FILTER_DEFAULT_VALUE;
             StringBuffer script = new StringBuffer();
             String indentation = "";
             
@@ -155,25 +157,9 @@ public class JdbcFolderStatement implements PreparedStatement {
 				cataloguesVides = cataloguesVides || ( catalogAsResultSet.isLast() && catalogAsResultSet.isBeforeFirst());			
 				catalogues.put(aliasCatalogue, catalogAsResultSet);				
 				
-				//System.out.println("validator.getCatalogs() 2 "+ aliasCatalogue+ "   " + catalogues.get(cles[indexCle]));
-				
 				// Ajout des colonnes du datasetsource comme colonnes possibles du dataset résultat 
 				//TODO dataSetResultatMetaData.addPossiblecolumns(aliasCatalogue, catalogAsResultSet.getMetadata())
-				
-				// S'il n'y a qu'un catalogue, on crée des fonctions wrapper pour éviter d'avoir à préfixer les champs par l'alias de l'unique catalogue
-				if (clesCatalogues.length == 1) {
-					/*script.append(indentation+"function getString(aField) {\n");			        
-					script.append("  return "+aliasCatalogue+".getString(aField);\n");
-					script.append("}\n");
-					script.append(indentation+"function getLong(aField) {\n");			        
-					script.append("  return "+aliasCatalogue+".getLong(aField);\n");
-					script.append("}\n");*/
-					/*script.append(indentation+"function EXTENSION() {\n");			        
-					script.append("  return "+aliasCatalogue+".getString('EXTENSION');\n");
-					script.append("}\n");*/
-				}
-				
-				
+							
 				// Ajout du dataset au scope javascript
 		        Scriptable jsArgs = Context.toObject(catalogAsResultSet, scope);
 		        scope.put(clesCatalogues[indexCleCatalogue].toString(), scope, jsArgs);
@@ -182,16 +168,9 @@ public class JdbcFolderStatement implements PreparedStatement {
 		        script.append(indentation+"while ("+aliasCatalogue+".next()) { \n");
 		        indentation = indentation + "  ";
 		        if (clesCatalogues.length == 1) {
-					/*script.append(indentation+"function getString(aField) {\n");			        
-					script.append("  return "+aliasCatalogue+".getString(aField);\n");
-					script.append("}\n");
-					script.append(indentation+"function getLong(aField) {\n");			        
-					script.append("  return "+aliasCatalogue+".getLong(aField);\n");
-					script.append("}\n");*/
 					for (int indexColonne = 1; indexColonne <= catalogAsResultSet.getMetaData().getColumnCount(); indexColonne++ ) {
 						script.append(indentation+"var "+catalogAsResultSet.getMetaData().getColumnLabel(indexColonne)+" = "+aliasCatalogue+".get"+catalogAsResultSet.getMetaData().getColumnTypeName(indexColonne)+"('"+catalogAsResultSet.getMetaData().getColumnLabel(indexColonne)+"');\n");
-					}
-					
+					}					
 				}		        	        
 			}			
 			
@@ -200,78 +179,54 @@ public class JdbcFolderStatement implements PreparedStatement {
 			filtre = validator.getWhereClause();	
 		      
 	    	filtre = JavaScriptFilterFormatter.format(filtre);
+	    	
+	    	filtre = filtre.trim().length() == 0 ? FILTER_DEFAULT_VALUE : filtre;
    
-			    
-	          script.append(indentation+"if ( " +filtre + " ) {\n");
-	          //script.append(indentation+"if ( EXTENSION.trim()  ==  'pdf'   ||  EXTENSION  ==  'xml'   ) {\n");
-	          //script.append(indentation+indentation+"mapIndexesTables = new java.util.HashMap();\n");
-	          for (int indexTables = 0; indexTables < clesCatalogues.length; indexTables++) {						
-	        	  script.append(indentation+indentation+"row = new Row(dataSetResultatMetaData)\n");
-	    	      // Pour le fun, le faire avec les metadata plutôt, désactiver le précédent getFields pour que ça marche
-//	    	      java.util.ArrayList aFieldList = validator.getFields();
-//	    		  for (int indexChamp = 0; indexChamp < aFieldList.size(); indexChamp++) {
-	    		  for (int indexChamp = 0; indexChamp < dataSetResultatMetaData.getColumnCount(); indexChamp++) {
-	    			    FieldMetadata champ = dataSetResultatMetaData.getColumnDefinitionByPosition(indexChamp);
-	  	        	    script.append(indentation+indentation+"row.setData('"+champ.columnLabel+"', "+champ.expression+");\n");
-	  	    	        //script.append(indentation+indentation+"var "+champ.getAlias()+" = "+champ.getExpression()+";\n");
-	    		  }			    	      
-	    	      script.append(indentation+indentation+"dataSetResultat.addRow(row);\n");
-	        	  //script.append(indentation+indentation+"mapIndexesTables.put('"+clesCatalogues[indexTables].toString()+"' ,new java.lang.Integer("+clesCatalogues[indexTables].toString()+".getRow()));\n");
-	          }
- 	          //script.append(indentation+indentation+"indexFichiers.add(mapIndexesTables);\n");
-	          script.append(indentation+"}\n");
-	          
-	          // Fermeture des boucles sur les datasets source
-		      char[] tableauAccoladesFermantes = new char[clesCatalogues.length];
-		      java.util.Arrays.fill(tableauAccoladesFermantes, '}');
-		      script.append(new String(tableauAccoladesFermantes));
-		      indentation = "";
-	          script.append(indentation+"\n//********* Fin script remplissage DataSet resultat \n"); 
-	          
-		      System.out.println(script.toString());        
-	                    
-			  // Application des filtres de la clause where 
-			  java.util.ArrayList indexFichiers = new java.util.ArrayList();
-			  Scriptable jsArgsindexFichiers = Context.toObject(indexFichiers, scope);
-	          scope.put("indexFichiers", scope, jsArgsindexFichiers);           
-
-
-	          Scriptable jsArgsDataSetResultat = Context.toObject(dataSetResultat, scope);
-	          scope.put("dataSetResultat", scope, jsArgsDataSetResultat);
-	          
-	          Scriptable jsArgsDataSetResultatMetaData = Context.toObject(dataSetResultatMetaData, scope);
-	          scope.put("dataSetResultatMetaData", scope, jsArgsDataSetResultatMetaData);
-	          
-	          Object result = cx.evaluateString(scope, script.toString(), "<cmd>", 1, null);
-	                
-	          System.err.println(cx.toString(result));
-	          
-			  /*  for (int indexFichier=0; indexFichier < indexFichiers.size(); indexFichier++) {
-				      //  System.out.println("fichier ajouté : " +fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()]);
-				      System.out.println(""+indexFichiers.get(indexFichier));
-				 }
-			    */
-			    
-	      } catch (Exception ex) {
-	      	ex.printStackTrace();    
-	      } finally {
-	        Context.exit();
-	      }  	
-	    /*} else {
-  	      // S'il n'y a aucune clause where à traiter, on met toutes les lignes
-	      for (int i = 0; i < liste.length; i++ ) {
-	      	indexFichiers.add(new java.lang.Integer(i));
-	      }      
-	    }*/
-
-
+			script.append(indentation+"if ( " +filtre + " ) {\n");
+			for (int indexTables = 0; indexTables < clesCatalogues.length; indexTables++) {						
+				script.append(indentation+indentation+"row = new Row(dataSetResultatMetaData)\n");
+				for (int indexChamp = 0; indexChamp < dataSetResultatMetaData.getColumnCount(); indexChamp++) {
+					FieldMetadata champ = dataSetResultatMetaData.getColumnDefinitionByPosition(indexChamp);
+					script.append(indentation+indentation+"row.setData('"+champ.columnLabel+"', "+champ.expression+");\n");
+					script.append(indentation+indentation+"dataSetResultatMetaData.getColumnDefinitionByUniqueName('"+champ.columnLabel+"').setColumnType(row.getData('"+champ.columnLabel+"').getClass().getName());\n");
+				}			    	      
+				script.append(indentation+indentation+"dataSetResultat.addRow(row);\n");
+			}
+			
+			script.append(indentation+"}\n");
+			  
+			// Fermeture des boucles sur les datasets source
+			char[] tableauAccoladesFermantes = new char[clesCatalogues.length];
+			java.util.Arrays.fill(tableauAccoladesFermantes, '}');
+			script.append(new String(tableauAccoladesFermantes));
+			indentation = "";
+			script.append(indentation+"\n//********* Fin script remplissage DataSet resultat \n"); 
+			  
+			System.out.println(script.toString());        
+			            
+			// Application des filtres de la clause where 
+			java.util.ArrayList indexFichiers = new java.util.ArrayList();
+			Scriptable jsArgsindexFichiers = Context.toObject(indexFichiers, scope);
+			scope.put("indexFichiers", scope, jsArgsindexFichiers);           
+			
+			
+			Scriptable jsArgsDataSetResultat = Context.toObject(dataSetResultat, scope);
+			scope.put("dataSetResultat", scope, jsArgsDataSetResultat);
+			  
+			Scriptable jsArgsDataSetResultatMetaData = Context.toObject(dataSetResultatMetaData, scope);
+			scope.put("dataSetResultatMetaData", scope, jsArgsDataSetResultatMetaData);
+			  
+			Object result = cx.evaluateString(scope, script.toString(), "<cmd>", 1, null);
+			            
+			System.err.println(cx.toString(result));
+				    
+		} catch (Exception ex) {
+			ex.printStackTrace();    
+		} finally {
+			Context.exit();
+		}  	
 		    
-	    /*
-	    // Application du GROUP BY
-
- 	
-	  	// Renvoi des colonnes
-	  	rsFinal = rsTravail;*/
+ 	    // Application du GROUP BY
 
 	      
 	    // Application du ORDER BY	

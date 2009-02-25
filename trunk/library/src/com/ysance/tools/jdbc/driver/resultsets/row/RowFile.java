@@ -16,7 +16,8 @@ public class RowFile extends Row {
 		this.fieldsList.add(FolderResultSetMetaData.EXTENSION_FIELD);
 
 		this.fieldsData.put(FolderResultSetMetaData.FILENAME_FIELD, this.fichierMappe.getName());
-		this.fieldsData.put(FolderResultSetMetaData.SIZE_FIELD, new Long(this.fichierMappe.length()));
+		this.fieldsData.put(FolderResultSetMetaData.SIZE_FIELD, new Double(new Long(this.fichierMappe.length()).doubleValue()));
+		System.out.println(new Double(new Long(this.fichierMappe.length()).doubleValue()).toString());
 		this.fieldsData.put(FolderResultSetMetaData.EXTENSION_FIELD, getExtension());
 	}
 	
@@ -37,25 +38,6 @@ public class RowFile extends Row {
 		}
 		return extension;
 	}  	
-		  	
-	public static String getMethodForField(String aFieldName) {
-		if (		FolderResultSetMetaData.FILENAME_FIELD.equals(aFieldName) 
-				||  FolderResultSetMetaData.EXTENSION_FIELD.equals(aFieldName)) {
-			return "getString(\""+aFieldName+"\")";
-			//return "getFileName()";
-		} else {
-    		if (FolderResultSetMetaData.SIZE_FIELD.equals(aFieldName)) {
-			return "getLong(\""+aFieldName+"\")";
-  			//return "getSize()";
-//  		} else {
-//	  		if () {
-//				return "getString("++")";
-	  			//return "getExtension()";
-//	  		}		  			
-    		}	  			
-		}
-		return "";
-	}
 	
 	public String toString()  {
 		return fichierMappe.toString();
