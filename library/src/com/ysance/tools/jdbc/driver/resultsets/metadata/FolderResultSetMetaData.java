@@ -44,7 +44,7 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 		this.catalogue = aCatalogue;
 		this.schemaName = aCatalogue;
 		colonnesPossibles.put(FILENAME_FIELD, new FieldMetadata(this.catalogue, String.class.getName(), 255, FILENAME_FIELD, FILENAME_FIELD, FILENAME_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
-		colonnesPossibles.put(SIZE_FIELD, new FieldMetadata(this.catalogue, Long.class.getName(), 255, SIZE_FIELD, SIZE_FIELD, SIZE_FIELD, java.sql.Types.BIGINT, "Long", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
+		colonnesPossibles.put(SIZE_FIELD, new FieldMetadata(this.catalogue, Double.class.getName(), 255, SIZE_FIELD, SIZE_FIELD, SIZE_FIELD, java.sql.Types.BIGINT, "Double", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
 		colonnesPossibles.put(EXTENSION_FIELD, new FieldMetadata(this.catalogue, String.class.getName(), 255, EXTENSION_FIELD, EXTENSION_FIELD, EXTENSION_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
 	}
 
@@ -76,28 +76,6 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 			boolean isSearchable = false;
 			boolean isSigned = false;
 			boolean isWritable = false;
-
-			/*Context cx = Context.enter();
-			Scriptable scope = cx.initStandardObjects();
-
-			try {		
-              Scriptable jsTypeColonne = Context.toObject(dataSetResultatMetaData, scope);
-		      scope.put("typeColonne", scope, jsArgsDataSetResultatMetaData);
-		          
-		          Object result = cx.evaluateString(scope, script.toString(), "<cmd>", 1, null);
-		                
-		          System.err.println(cx.toString(result));
-		          
-				    for (int indexFichier=0; indexFichier < indexFichiers.size(); indexFichier++) {
-					      //  System.out.println("fichier ajouté : " +fichiers[((Integer)(indexFichiers.get(indexFichier))).intValue()]);
-					      System.out.println(""+indexFichiers.get(indexFichier));
-					 }
-				    
-		      } catch (Exception ex) {
-		      	ex.printStackTrace();    
-		      } finally {
-		        Context.exit();
-		      }			*/
 			
 			addColumn(new FieldMetadata(	catalogName, 
 					columnClassName,
