@@ -59,7 +59,7 @@ No login information to enter ( by now )
     OdiOutFile -FILE=C:/temp/list.txt -APPEND -XROW_SEP=0D0A
     this a file named #filename
     }}}
-  * Configure the *Source* tab with the JdbcFolder technology, and JFLDR_TEST logical schema.
+  * Configure the *Source* tab with the File technology, and JFLDR_TEST logical schema.
   * Add the following query :
     {{{
     select filename from /temp
