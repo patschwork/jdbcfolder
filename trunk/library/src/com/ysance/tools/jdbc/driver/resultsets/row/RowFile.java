@@ -17,7 +17,7 @@ public class RowFile extends Row {
 
 		this.fieldsData.put(FolderResultSetMetaData.FILENAME_FIELD, this.fichierMappe.getName());
 		this.fieldsData.put(FolderResultSetMetaData.SIZE_FIELD, new Double(new Long(this.fichierMappe.length()).doubleValue()));
-		System.out.println(new Double(new Long(this.fichierMappe.length()).doubleValue()).toString());
+		//System.out.println(new Double(new Long(this.fichierMappe.length()).doubleValue()).toString());
 		this.fieldsData.put(FolderResultSetMetaData.EXTENSION_FIELD, getExtension());
 	}
 	

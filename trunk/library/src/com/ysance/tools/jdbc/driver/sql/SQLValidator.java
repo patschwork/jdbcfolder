@@ -99,7 +99,7 @@ public class SQLValidator implements SQLGrammar, ParsingUtilities {
 				}
 				listeAliasChamps.put(aliasOrigine,numeroAlias);
 
-				System.out.println(aSelectedField.toString());	            
+				//System.out.println(aSelectedField.toString());	            
 			}
 		}
 				

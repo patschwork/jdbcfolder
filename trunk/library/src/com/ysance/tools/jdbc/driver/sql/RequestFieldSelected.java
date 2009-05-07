@@ -94,8 +94,8 @@ public class RequestFieldSelected implements SQLGrammar, ParsingUtilities {
 			}
 		}
 		
-		System.out.println("expression" + expression);
-		System.out.println("alias " + alias);
+		//System.out.println("expression" + expression);
+		//System.out.println("alias " + alias);
 	}
 
 	public void setAlias(String alias) {

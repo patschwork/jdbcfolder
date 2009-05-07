@@ -201,7 +201,8 @@ public class JdbcFolderStatement implements PreparedStatement {
 			script.append(new String(tableauAccoladesFermantes));
 			indentation = "";
 			script.append(indentation+"\n//********* Fin script remplissage DataSet resultat \n"); 
-			  
+			
+			// contenu du script
 			System.out.println(script.toString());        
 			            
 			// Application des filtres de la clause where 
@@ -218,7 +219,8 @@ public class JdbcFolderStatement implements PreparedStatement {
 			  
 			Object result = cx.evaluateString(scope, script.toString(), "<cmd>", 1, null);
 			            
-			System.err.println(cx.toString(result));
+			// retour du script
+			//System.err.println(cx.toString(result));
 				    
 		} catch (Exception ex) {
 			ex.printStackTrace();    
