@@ -1,7 +1,7 @@
 package com.ysance.tools.jdbc.driver.test;
 
 /**
- * todo :
+ * todo 
  *   Récupérer un parser SQL
  */
 
@@ -14,11 +14,14 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.logging.*;
 
 import com.ysance.tools.jdbc.driver.JdbcFolderStatement;
 
 public class TestJdbcFolder {
 	/**
+	 * @todo DriverManager.setLogWriter pour debuggage driver
+	 * 
 	 * @param args
 	 */
   public static void main(String[] args) {
@@ -46,19 +49,27 @@ public class TestJdbcFolder {
 		  ResultSet results;
 		  Statement stmt = con.createStatement();
 		  results = stmt.executeQuery(query);	  
-		  System.out.println("TestJdbcFolder.main()");
+		  logger.info("TestJdbcFolder.main()");
 		  while( results.next() ) { // Point result set to next row
-		    System.out.println("results.getString(filename) "+results.getString("filename"));
-		    System.out.println("results.getString(0) "+results.getString(0));
-		    System.out.println("results.getString(filename_2) "+results.getString("filename_2"));
-		    System.out.println(" ");
+		    logger.info("results.getString(filename) "+results.getString("filename"));
+		    logger.info("results.getString(0) "+results.getString(0));
+		    logger.info("results.getString(filename_2) "+results.getString("filename_2"));
+		    logger.info(" ");
 		  }	  
 		} catch(Exception e) {
 		  e.printStackTrace();
 		}
 	}
+
+    private static Logger logger = Logger.getLogger("com.ysance.tools.jdbc.driver.test.TestJdbcFolder");
+    private static ConsoleHandler ch = new ConsoleHandler();
 	
 	private static void testPreparedStatement() {
+        // Send logger output to our FileHandler.
+        logger.addHandler(ch);
+        // Request that every detail gets logged.
+        logger.setLevel(Level.ALL);
+        // Log a simple INFO message.
 		try {
 		  // redirect console I/O to specified file.
 		  /*TestJdbcFolder.out = System.out;
@@ -74,31 +85,24 @@ public class TestJdbcFolder {
 		  String url = "jdbc:folder";	
 		  Connection con = DriverManager.getConnection(url);
 		  DatabaseMetaData conMetaData = con.getMetaData(); 
-		  //String query = JdbcFolderStatement.DUMMY_REQUEST;
-		  String query = " select  filename + 1 as toto ,  size + 1 ,extension ,filename, size,extension, filename, size,extension from /temp ";  
+
+		  String query = " select  filename + 1 as toto ,  size + 1 ,extension ,filename, size,extension, filename, size,extension from /temp where extension <> 'txt'";  
 		  PreparedStatement stmt = con.prepareStatement(query);
 		  stmt.setFetchSize(10);
 		  ResultSet results = stmt.executeQuery();
 		  //results = stmt.executeQuery(query);	  
-		  System.out.println(" ****************************  récup valeurs resultset ");		  
+		  logger.info(" ****************************  récup valeurs resultset ");		  
 		  while( results.next() ) { // Point result set to next row
-			//System.out.println("results.getString(toto) "+results.getString("toto"));
-		    System.out.println("results.getString(filename) "+results.getString("filename"));
-		    System.out.println("results.getString(1) "+results.getString(1));
-		    System.out.println("results.getString(2) "+results.getString(2));
-		    System.out.println("results.getDouble(2) "+results.getDouble(2));
-		    System.out.println("results.getString(size) "+results.getString("size"));
-		    //System.out.println("results.getDouble(size) "+results.getDouble("size"));
-		    //System.out.println("results.getString(extension) "+results.getString("extension"));
-		    //System.out.println("results.getString(filename_1) "+results.getString("filename_1"));
-		    //System.out.println("results.getString(1) "+results.getString(1));
-		    /*System.out.println("results.getLong(size_2) "+results.getLong("size_2"));
-		    System.out.println("results.getString(extension_2) "+results.getString("extension_2"));*/
-		    System.out.println(" ");
+			  System.out.println("results.getString(filename) "+results.getString("filename") + 
+					" getString(1) "+results.getString(1) +
+					" getString(2) "+results.getString(2)+
+					" getDouble(2) "+results.getDouble(2) + 
+					" getString(size) "+results.getString("size") + 
+					" getString(filename) "+results.getString("filename"));
 		  }	  
-		} catch(Exception e) {
-		  e.printStackTrace();
-		}
+        } catch (Exception ex) {
+            logger.severe(ex.getMessage());
+        }
 		/*
 			JdbcFolderDriver.acceptsURL
 			JdbcFolderDriver.connect

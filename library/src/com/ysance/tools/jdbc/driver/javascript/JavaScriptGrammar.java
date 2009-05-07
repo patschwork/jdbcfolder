@@ -8,4 +8,6 @@ public interface JavaScriptGrammar extends com.ysance.tools.jdbc.driver.JdbcFold
 	
 	public static String JAVASCRIPT_EQUALITY_OPERATOR = " == ";	
 	
+	public static String JAVASCRIPT_DIFFERENCE_OPERATOR = " != ";	
+	
 }

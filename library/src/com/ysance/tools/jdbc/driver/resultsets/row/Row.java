@@ -36,7 +36,7 @@ public class Row {
 	public void setData(String aFieldName, Object aData) throws SQLException {
 		if (fieldsList.contains(aFieldName)) {
 			fieldsData.put(aFieldName, aData);
-			System.out.println("Classe donnée ligne "+aData.getClass().getName());
+			//System.out.println("Classe donnée ligne "+aData.getClass().getName());
 		} else {
 			throw new JdbcFolderExceptions.FieldNotFoundException(aFieldName);			
 		}
