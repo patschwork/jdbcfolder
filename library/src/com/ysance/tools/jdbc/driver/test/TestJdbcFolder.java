@@ -86,19 +86,36 @@ public class TestJdbcFolder {
 		  Connection con = DriverManager.getConnection(url);
 		  DatabaseMetaData conMetaData = con.getMetaData(); 
 
-		  String query = " select  filename + 1 as toto ,  size + 1 ,extension ,filename, size,extension, filename, size,extension from /temp where extension <> 'txt'";  
+		  int numeroRequete = -1;
+		  //String query = " select  filename + 1 as toto ,  size + 1 ,extension ,filename, size,extension, filename, size,extension from /temp where extension <> 'log'"; numeroRequete= 1;  		  
+		  //String query = " select  filename + 'E' from /temp ";  		   numeroRequete= 2;
+		  //String query = " select  filename + 'E' as toto ,  size + 1 ,extension ,filename, size,extension, filename, size,extension from /temp where extension <> 'log'";  numeroRequete= 3;  		  
+		  //String query = " select * from /temp";   numeroRequete= 4;
+		  String query = " select  filename.toUpperCase() + size + 1 from /temp ";  		   numeroRequete= 2;
+
+		  
 		  PreparedStatement stmt = con.prepareStatement(query);
 		  stmt.setFetchSize(10);
+		  
 		  ResultSet results = stmt.executeQuery();
+		  
+		  System.out.println(stmt.toString());
+		  
 		  //results = stmt.executeQuery(query);	  
 		  logger.info(" ****************************  récup valeurs resultset ");		  
 		  while( results.next() ) { // Point result set to next row
-			  System.out.println("results.getString(filename) "+results.getString("filename") + 
-					" getString(1) "+results.getString(1) +
-					" getString(2) "+results.getString(2)+
-					" getDouble(2) "+results.getDouble(2) + 
-					" getString(size) "+results.getString("size") + 
-					" getString(filename) "+results.getString("filename"));
+			switch (numeroRequete) {
+			case 1: System.out.println("results.getString(filename) "+results.getString("filename") +	" getString(1) "+results.getString(1) +	" getString(2) "+results.getString(2)+	" getDouble(2) "+results.getDouble(2) + " getString(size) "+results.getString("size") +	" getString(filename) "+results.getString("filename")			  ); break;
+			case 2:	System.out.println(" getString(1) "+results.getString(1) );	break;
+			case 3: System.out.println(" getString(1) "+results.getString(1) + " getString(2) "+results.getString(2) ); break;
+			case 4: 
+				for (int i = 0; i < results.getMetaData().getColumnCount(); i++) {
+					System.out.print(" getString("+i+") "+results.getString(i + 1)  );					
+				}				
+				System.out.println(" "  ); break;
+			default:
+				break;
+			}
 		  }	  
         } catch (Exception ex) {
             logger.severe(ex.getMessage());

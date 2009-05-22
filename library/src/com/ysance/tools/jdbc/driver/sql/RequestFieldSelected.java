@@ -10,6 +10,8 @@ public class RequestFieldSelected implements SQLGrammar, ParsingUtilities {
 	int positionSeparateurAlias = -1;
 	int positionAlias = -1;
 	
+	boolean bIsSQLJoker = false;
+	
 	String alias;
 	String expression;
 	String wholeString;
@@ -92,6 +94,11 @@ public class RequestFieldSelected implements SQLGrammar, ParsingUtilities {
 			} else {
 				alias = this.mots.get(this.mots.size() - 1).toString();
 			}
+			// On "nettoie" l'alias
+			alias = alias.toUpperCase().replace("'", "");
+
+			bIsSQLJoker = SQLGrammar.JOKER_WORD.equals(expression.trim());
+
 		}
 		
 		//System.out.println("expression" + expression);
@@ -100,5 +107,13 @@ public class RequestFieldSelected implements SQLGrammar, ParsingUtilities {
 
 	public void setAlias(String alias) {
 		this.alias = alias;
+	}
+	
+	/**
+	 * 
+	 * @return true if the expression is the SQL Joker (*)
+	 */
+	public boolean isSQLJoker() {
+		return this.bIsSQLJoker;
 	}
 }

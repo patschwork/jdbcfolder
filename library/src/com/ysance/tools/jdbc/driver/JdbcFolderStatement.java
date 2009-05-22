@@ -38,6 +38,8 @@ public class JdbcFolderStatement implements PreparedStatement {
 	
 	private FolderResultSet rsFinal;
 	
+	private String generatedScript;
+	
 	//public static final String DUMMY_REQUEST = "SELECT * FROM /temp ";
 	public static final String DUMMY_REQUEST = "SELECT FILeNAME, FileNamE , FileName FROM /temp where size < 10000";
 
@@ -116,6 +118,14 @@ public class JdbcFolderStatement implements PreparedStatement {
 		}
 	}
 
+	/**
+	 * Ajoute les imports initiaux au script
+	 */
+	private void initInitialImports(StringBuffer currentScript, String indentation) {
+		currentScript.append(indentation+"Row = Packages.com.ysance.tools.jdbc.driver.resultsets.row.Row;\n"); 
+		currentScript.append(indentation+"\n\n"); 		
+	}
+	
 
 	/**
 	 * Méthode de l'interface Statement
@@ -125,8 +135,8 @@ public class JdbcFolderStatement implements PreparedStatement {
 	    //  System.out.println("JdbcFolderStatement.executeQuery()");
 		SQLValidator validator = new SQLValidator(query);
 
-        FolderResultSetMetaData dataSetResultatMetaData = new FolderResultSetMetaData(validator.getFields());
-        FolderResultSet dataSetResultat = new FolderResultSet(dataSetResultatMetaData);	          
+        //FolderResultSetMetaData dataSetResultatMetaData = new FolderResultSetMetaData(validator.getFields());
+        FolderResultSet dataSetResultat = null; //new FolderResultSet();//dataSetResultatMetaData);	          
 
 		
 		Context cx = Context.enter();
@@ -141,12 +151,14 @@ public class JdbcFolderStatement implements PreparedStatement {
             String indentation = "";
             
 	        script.append(indentation+"//********* Debut script remplissage DataSet resultat \n"); 
-	        script.append(indentation+"Row = Packages.com.ysance.tools.jdbc.driver.resultsets.row.Row;\n"); 
-	        script.append(indentation+"\n\n"); 
+	        initInitialImports(script, indentation);
 
 	
 			// Permet de déterminer si tous les catalogues sont vides
 			boolean cataloguesVides = false;
+
+			// Initialisation des metadata du Resultset de résultat
+			FolderResultSetMetaData dataSetResultatMetaData = new FolderResultSetMetaData();
 			
 			// On echange les catalogues au format String par des catalogues au format DataSet
 			for (int indexCleCatalogue = 0; indexCleCatalogue < clesCatalogues.length; indexCleCatalogue++) {						
@@ -158,7 +170,9 @@ public class JdbcFolderStatement implements PreparedStatement {
 				catalogues.put(aliasCatalogue, catalogAsResultSet);				
 				
 				// Ajout des colonnes du datasetsource comme colonnes possibles du dataset résultat 
-				//TODO dataSetResultatMetaData.addPossiblecolumns(aliasCatalogue, catalogAsResultSet.getMetadata())
+				if (validator.hasAllFieldsWanted()) {
+					dataSetResultatMetaData.addAllColumns(catalogAsResultSet.getMetaData());
+				}
 							
 				// Ajout du dataset au scope javascript
 		        Scriptable jsArgs = Context.toObject(catalogAsResultSet, scope);
@@ -174,7 +188,11 @@ public class JdbcFolderStatement implements PreparedStatement {
 				}		        	        
 			}			
 			
-			
+			if (!validator.hasAllFieldsWanted()) {
+				dataSetResultatMetaData.addAllColumns(validator.getFields());
+			}
+	        dataSetResultat = new FolderResultSet(dataSetResultatMetaData);	 
+	        
 			// Application du WHERE
 			filtre = validator.getWhereClause();	
 		      
@@ -203,7 +221,7 @@ public class JdbcFolderStatement implements PreparedStatement {
 			script.append(indentation+"\n//********* Fin script remplissage DataSet resultat \n"); 
 			
 			// contenu du script
-			System.out.println(script.toString());        
+			this.generatedScript = script.toString();        
 			            
 			// Application des filtres de la clause where 
 			java.util.ArrayList indexFichiers = new java.util.ArrayList();
@@ -216,7 +234,7 @@ public class JdbcFolderStatement implements PreparedStatement {
 			  
 			Scriptable jsArgsDataSetResultatMetaData = Context.toObject(dataSetResultatMetaData, scope);
 			scope.put("dataSetResultatMetaData", scope, jsArgsDataSetResultatMetaData);
-			  
+		  
 			Object result = cx.evaluateString(scope, script.toString(), "<cmd>", 1, null);
 			            
 			// retour du script
@@ -1065,5 +1083,7 @@ public class JdbcFolderStatement implements PreparedStatement {
     	return new JdbcFolderStatementParameterMetaData();
     }
 	
-	
+	public String toString() {
+		return this.generatedScript;
+	}
 }

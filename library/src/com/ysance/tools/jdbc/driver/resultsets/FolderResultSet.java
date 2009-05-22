@@ -27,8 +27,7 @@ public class FolderResultSet extends JdbcFolderAbstractResultSet {
 
 	public FolderResultSet(FolderResultSetMetaData aMetaData) {
 		this();
-		this.metaData = aMetaData;
-	
+		this.metaData = aMetaData;	
 	}
 	
 	public FolderResultSet(String aCatalog) throws SQLException {

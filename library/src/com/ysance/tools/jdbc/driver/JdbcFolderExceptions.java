@@ -85,6 +85,14 @@ public class JdbcFolderExceptions {
 		}
 	}
 	
+	/** Erreur E103 */
+	public static class JokerMustBeAloneException extends SQLException{
+		public JokerMustBeAloneException() {
+			super("E103 - No other field can be returned if SQL joker is already requiered");		
+		}
+	}	
+	
+	
 	/** Erreur E999 */
 	public static class GenericBadRequestException extends SQLException{
 		public GenericBadRequestException() {
