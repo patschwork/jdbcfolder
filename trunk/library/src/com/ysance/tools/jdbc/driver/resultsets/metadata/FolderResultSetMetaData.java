@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import com.ysance.tools.jdbc.driver.JdbcFolderExceptions;
 import com.ysance.tools.jdbc.driver.JdbcFolderExceptions.NoDatasetFieldFoundAtPositionException;
 import com.ysance.tools.jdbc.driver.sql.RequestFieldSelected;
+import com.ysance.tools.jdbc.driver.sql.SQLGrammar;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -48,58 +49,6 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 		colonnesPossibles.put(EXTENSION_FIELD, new FieldMetadata(this.catalogue, String.class.getName(), 255, EXTENSION_FIELD, EXTENSION_FIELD, EXTENSION_FIELD, java.sql.Types.VARCHAR, "String", 255, 255, this.catalogue, this.catalogue, false, true, false, false, 0, false, true, false, true));
 	}
 
-	public FolderResultSetMetaData(ArrayList aFieldList) throws SQLException {
-		this();
-		
-		for (int indexChamp = 0; indexChamp < aFieldList.size(); indexChamp++) {
-			RequestFieldSelected champ = (RequestFieldSelected)aFieldList.get(indexChamp);
-			
-			String  columnLabel = champ.getAlias();
-			String  columnName = champ.getExpression();
-
-			String  catalogName = "";
-			String  columnClassName = "";
-			int     columnDisplaySize = 0;
-			int     columnType = 0;
-			String  columnTypeName = "";
-			String  expression = champ.getExpression();
-			int     precision = 0;
-			int     scale = 0;
-			String  schemaName = "";
-			String  tableName = "";
-			boolean autoIncrement = false;
-			boolean caseSensitive = false;
-			boolean isCurrency = false;
-			boolean definitelyWritable = false;
-			int     nullable = 0;
-			boolean isReadOnly = false;
-			boolean isSearchable = false;
-			boolean isSigned = false;
-			boolean isWritable = false;
-			
-			addColumn(new FieldMetadata(	catalogName, 
-					columnClassName,
-					columnDisplaySize,
-					columnLabel,
-					columnName,
-					expression,
-					columnType,
-					columnTypeName,
-					precision,
-					scale,
-					schemaName,
-					tableName,
-					autoIncrement,
-					caseSensitive,
-					isCurrency,
-					definitelyWritable,
-					nullable,
-					isReadOnly,
-					isSearchable,	
-					isSigned,	
-					isWritable));
-		}				
-	}
 	
 	/**
 	 * Vérifie l'existence d'une colonne suivant son nom
@@ -149,6 +98,74 @@ public class FolderResultSetMetaData implements ResultSetMetaData {
 		return positionEnCours.intValue();
 	}
 	
+	/**
+	 * Ajoute toutes les colonnes au ResultSet
+	 * @param aField : nom d'une colonne
+	 * @return position de la colonne dans le ResultSet
+	 */
+	public void addAllColumns(ResultSetMetaData newFolderResultSetMetaData) throws SQLException {
+		FolderResultSetMetaData aFolderResultSetMetaData = (FolderResultSetMetaData)newFolderResultSetMetaData;
+		for (int indexChamp = 0; indexChamp < aFolderResultSetMetaData.getColumnCount(); indexChamp++) {		
+			addColumn(aFolderResultSetMetaData.getColumnDefinitionByPosition(indexChamp));
+		}
+	}
+
+    /**
+     * Add all columns with selected fields
+     * @param aFieldList
+     * @throws SQLException
+     */
+	public void addAllColumns(ArrayList aFieldList) throws SQLException {
+		
+		for (int indexChamp = 0; indexChamp < aFieldList.size(); indexChamp++) {
+			RequestFieldSelected champ = (RequestFieldSelected)aFieldList.get(indexChamp);
+			
+			String  columnLabel = champ.getAlias();
+			String  columnName = champ.getExpression();
+
+			String  catalogName = "";
+			String  columnClassName = "";
+			int     columnDisplaySize = 0;
+			int     columnType = 0;
+			String  columnTypeName = "";
+			String  expression = champ.getExpression();
+			int     precision = 0;
+			int     scale = 0;
+			String  schemaName = "";
+			String  tableName = "";
+			boolean autoIncrement = false;
+			boolean caseSensitive = false;
+			boolean isCurrency = false;
+			boolean definitelyWritable = false;
+			int     nullable = 0;
+			boolean isReadOnly = false;
+			boolean isSearchable = false;
+			boolean isSigned = false;
+			boolean isWritable = false;
+			
+			addColumn(new FieldMetadata(	catalogName, 
+					columnClassName,
+					columnDisplaySize,
+					columnLabel,
+					columnName,
+					expression,
+					columnType,
+					columnTypeName,
+					precision,
+					scale,
+					schemaName,
+					tableName,
+					autoIncrement,
+					caseSensitive,
+					isCurrency,
+					definitelyWritable,
+					nullable,
+					isReadOnly,
+					isSearchable,	
+					isSigned,	
+					isWritable));
+		}				
+	}	
 	
 	/**
 	 * Ajoute toutes les colonnes possibles au dataset 

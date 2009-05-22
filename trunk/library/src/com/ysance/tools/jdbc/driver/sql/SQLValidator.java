@@ -14,11 +14,17 @@ import com.ysance.tools.jdbc.driver.resultsets.row.RowFile;
 public class SQLValidator implements SQLGrammar, ParsingUtilities {
 	
 	ArrayList requete;
+	
+	ArrayList listeChamps = new ArrayList();
+	HashMap listeAliasChamps = new HashMap();
+	
 	int positionSelect   = -1;  
 	int positionFrom     = -1;
 	int positionWhere    = -1;
 	int positionOrderBy  = -1;
 	int positionGroupBy  = -1;
+	
+	boolean bAllFieldsWanted = false;
 	
 	public SQLValidator (String newRequete) throws SQLException {
 		try {
@@ -34,34 +40,14 @@ public class SQLValidator implements SQLGrammar, ParsingUtilities {
 		if ( positionSelect > 0 ) throw new JdbcFolderExceptions.RequestMustBeginBySelectException();
 		if ( positionFrom < 0 )   throw new JdbcFolderExceptions.NoFromWordFoundException();
 		
+		populateFields();		
 	}
 	
 	/**
-	 * 
-	 * @return a HashMap containing, for each expression in the SELECT clause, the alias as the key and a RequestFieldSelected as the value
+	 * Populate the listeAliasChamps with all fields selected in the request
 	 */
-	/*public StringTokenizer getFields() {
-		StringBuffer fields = new StringBuffer();
+	private void populateFields() throws SQLException {
 		int finFields  = positionFrom;
-		for ( int index = positionSelect + 1; index < finFields ; index++ ) {
-			System.out.println(requete.get(index));
-			fields.append(requete.get(index));
-			fields.append(" ");
-		}
-		return new StringTokenizer(fields.toString(), ",");
-		//return new StringTokenizer(this.requete.substring(positionSelect + SQLFormatter.SELECT_WORD.length(), positionFrom), ",");	
-	}*/
-	
-	/**
-	 * 
-	 * @return a HashMap containing, for each expression in the SELECT clause, the alias as the key and a RequestFieldSelected as the value
-	 */
-	public ArrayList getFields() {
-		int finFields  = positionFrom;
-		
-		
-		ArrayList listeChamps = new ArrayList();
-		HashMap listeAliasChamps = new HashMap();
 		
 		for ( int index = positionSelect + 1; index < finFields ; index++ ) {
 			RequestFieldSelected aSelectedField = new RequestFieldSelected();
@@ -98,13 +84,23 @@ public class SQLValidator implements SQLGrammar, ParsingUtilities {
 					numeroAlias = new Integer(numeroAlias.intValue() + 1);
 				}
 				listeAliasChamps.put(aliasOrigine,numeroAlias);
-
-				//System.out.println(aSelectedField.toString());	            
+            
 			}
+			
+			bAllFieldsWanted = bAllFieldsWanted || aSelectedField.isSQLJoker();
 		}
-				
+		
+		if (bAllFieldsWanted && (listeChamps.size() > 1)) {
+			throw new JdbcFolderExceptions.JokerMustBeAloneException();
+		}
+	}
+	
+	/**
+	 * 
+	 * @return an ArrayList containing, for each expression in the SELECT clause, the alias as the key and a RequestFieldSelected as the value
+	 */
+	public ArrayList getFields() {
 		return listeChamps;
-		//return new StringTokenizer(this.requete.substring(positionSelect + SQLFormatter.SELECT_WORD.length(), positionFrom), ",");	
 	}	
 	
 	/**
@@ -253,4 +249,12 @@ public class SQLValidator implements SQLGrammar, ParsingUtilities {
 		return catalogues;
 	}	
 
+	/**
+	 * 
+	 * @return true if the selected fields consist in a SQL Joker (*)
+	 */
+	public boolean hasAllFieldsWanted() {
+		return this.bAllFieldsWanted;
+	}
+	
 }
