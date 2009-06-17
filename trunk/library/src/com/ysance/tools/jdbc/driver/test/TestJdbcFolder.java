@@ -91,8 +91,11 @@ public class TestJdbcFolder {
 		  //String query = " select  filename + 'E' from /temp ";  		   numeroRequete= 2;
 		  //String query = " select  filename + 'E' as toto ,  size + 1 ,extension ,filename, size,extension, filename, size,extension from /temp where extension <> 'log'";  numeroRequete= 3;  		  
 		  //String query = " select * from /temp";   numeroRequete= 4;
-		  String query = " select  filename.toUpperCase() + size + 1 from /temp ";  		   numeroRequete= 2;
-
+		  //String query = " select  filename.toUpperCase() + size + 1 from /temp ";  		   numeroRequete= 2;
+		  //String query = " select  'file,name' from /temp ";  		   numeroRequete= 2;
+		  //String query = " select a.sf(b) as file, 'na,me' from /temp where e.dg(f,g,h) = i.fh(j,k,l) ";  		   numeroRequete= 2;
+		  //String query = " select 'nom de fichier : '+filename+'.'+extension from c:/env where extension = 'ini'";  		   numeroRequete= 2;
+		  String query = " select ( 1 + 2 +3 -9 +6 *2) / 3 as math from c:/env where extension = 'ini'";  		   numeroRequete= 2;
 		  
 		  PreparedStatement stmt = con.prepareStatement(query);
 		  stmt.setFetchSize(10);

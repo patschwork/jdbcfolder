@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public interface ParsingUtilities {
 
-	public final char[] separateursMots = {' ',')','(','\n','\t'};
+	public char[] separateursMots = {' ',')','(','\n','\t','+','*','-'};
 	
 	// Le caractère de fermeture correspondant à un caractère d'ouverture doit se trouver à la même position dans le tableau 
 	public char[] ouvertureGroupeCatalogue = {'"','('};

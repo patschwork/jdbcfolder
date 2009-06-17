@@ -95,7 +95,7 @@ public class RequestFieldSelected implements SQLGrammar, ParsingUtilities {
 				alias = this.mots.get(this.mots.size() - 1).toString();
 			}
 			// On "nettoie" l'alias
-			alias = alias.toUpperCase().replace("'", "");
+			alias = alias.toUpperCase().replaceAll("'", "");
 
 			bIsSQLJoker = SQLGrammar.JOKER_WORD.equals(expression.trim());
 

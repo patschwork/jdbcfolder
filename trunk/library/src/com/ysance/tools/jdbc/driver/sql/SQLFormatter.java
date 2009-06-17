@@ -50,6 +50,7 @@ public class SQLFormatter implements SQLGrammar, ParsingUtilities {
 			char c = caracteresRequete[indexLettre];
 			// On supprime les blancs en début de chaine
 			if (!premierCaractereNonEspaceTrouve) {
+				Arrays.sort(separateursMots);
 				if ( Arrays.binarySearch(separateursMots,c) > -1 ) {
 					continue;							
 				} else {

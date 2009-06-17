@@ -128,18 +128,7 @@ public class SQLValidator implements SQLGrammar, ParsingUtilities {
 			finWhere  = finWhere == -1 ? positionOrderBy : finWhere;
 			finWhere  = finWhere == -1 ? requete.size()  : finWhere;
 			for ( int index = positionWhere + 1; index < finWhere ; index++ ) {
-				RequestWord aRequestWord = (RequestWord)requete.get(index);
-				
-				/*if ( aRequestWord.kind == RequestWord.KIND_UNKNOWN ) {
-					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.SIZE_FIELD, aTableAlias+RowFile.getMethodForField(FolderResultSetMetaData.SIZE_FIELD));
-					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.FILENAME_FIELD, aTableAlias+RowFile.getMethodForField(FolderResultSetMetaData.FILENAME_FIELD));
-					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.EXTENSION_FIELD, aTableAlias+RowFile.getMethodForField(FolderResultSetMetaData.EXTENSION_FIELD));            
-				}*/
-				/*if ( aRequestWord.kind == RequestWord.KIND_UNKNOWN ) {
-					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.SIZE_FIELD, FolderResultSetMetaData.SIZE_FIELD+"()");
-					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.FILENAME_FIELD, FolderResultSetMetaData.FILENAME_FIELD+"()");
-					aRequestWord.word = aRequestWord.word.replaceAll(FolderResultSetMetaData.EXTENSION_FIELD, FolderResultSetMetaData.EXTENSION_FIELD+"()");            
-				}	*/			
+				RequestWord aRequestWord = (RequestWord)requete.get(index);		
 				//System.out.println(aRequestWord.word);
 				whereClause.append(aRequestWord.word);
 				whereClause.append(" ");

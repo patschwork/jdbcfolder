@@ -10,8 +10,10 @@ public class TestJdbcFolderQueryUppercaser {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		//String requete = "select filename from e:/temp where filename = 'l''excuse mogador, c''est fermé !' and toto >= toto and titi <= tutu ";
+        String requete = " select 'nom de fichier : '+filename+'.'+extension from c:/env where extension = 'ini'";  		
+		System.out.println(com.ysance.tools.jdbc.driver.sql.SQLFormatter.upperCaseSQLWordsAndFields(requete));
 
-		String requete = "SELECT * FROM /temp where filename = 'The Beauty and the beast or someonelse ' and filename = '1+2=3 or something like that' or size < 10000 ";		
+		requete = "SELECT * FROM /temp where filename = 'The Beauty and the beast or someonelse ' and filename = '1+2=3 or something like that' or size < 10000 ";		
 		System.out.println(com.ysance.tools.jdbc.driver.sql.SQLFormatter.upperCaseSQLWordsAndFields(requete));
 				
 		requete = "SELECT FILeNAME, FileNamE , FileName FROM /temp where filename = 'The Beauty AND the beast OR someone else ' and filename = ' L''excuse Mogador c''est fini ' and filename = '1+2=3 or somethhing like that' or size < 10000 ";		
