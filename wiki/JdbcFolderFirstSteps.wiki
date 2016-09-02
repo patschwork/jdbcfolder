@@ -1,0 +1,59 @@
+Introduction
+
+    In this page you will find the procedure to follow to use jdbcFolder with two tools : * SQuirreL SQL * Oracle Data Integrator
+
+Configuration
+
+    Download the rhino1_5R5.zip file from the following website :
+
+    Rhino project
+
+    Go to Downloads-> Rhino downloads archive section
+    Extract js.jar and add it in the classpath of the java application
+    Add jdbcFolder0.1.jar at the java application classpath
+
+The driver class is :
+
+com.ysance.tools.jdbc.driver.JdbcFolderDriver
+
+By now the driver url is fixed at :
+
+jdbc:folder
+
+No login information to enter ( by now )
+SQuirreL SQL
+
+    Add the two jar files in the lib directory of SQuirreL an then launch the application.
+    Configure a new driver named JdbcFolder and fill-up the field with the url and driver class given before
+    Create an alias selecting the JdbcFolder driver. The url is still the same than above.
+    Connect and try a select * from /windows query
+
+Oracle Data Integrator
+
+    Add the two jar files in the drivers directory of ODI.
+    Launch jython.bat once ( it caches the jars ) and exit (Ctrl+Z).
+
+Configure the technology
+
+    Insert new logical schema ( ex : JFLDR_TEST ) in the File Technology
+
+    Go in the Topology -> Physical architecture and insert a new Dataserver ( ex : JDBCFOLDER_TEST ) always for the File technology.
+    Set the driver class as _com.ysance.tools.jdbc.driver.JdbcFolderDriver
+
+    Set the driver URL as_jdbc:folder
+
+    Under the server, add a new physical schema, it can be blank.
+    Associate the logical and the physical schemas in a context.
+
+Create a new Treatment
+
+    Add a new line of Sunopsis API type and put in it : OdiOutFile -FILE=C:/temp/list.txt -APPEND -XROW_SEP=0D0A this a file named #filename
+    Configure the Source tab with the File technology, and JFLDR_TEST logical schema.
+    Add the following query : select filename from /temp
+
+    Save all and execute.
+
+    ==> The C:\temp directory should now have a file called list.txt containing the ligne of files present in this directory ( minus list.txt as it has been created after the sélection.
+    ==> OdiOutFile can be replaced by any other ODI tool, by a jython code line or even SQL, like any other treatment.
+
+The only drawback is that, by now, ODI substitution methods don't work.
